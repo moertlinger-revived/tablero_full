@@ -15,11 +15,21 @@
         h2 { color: #ccff00; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
         label { display: block; margin-bottom: 5px; color: #aaa; font-size: 14px; font-weight: bold; }
         select, input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; background: #2b2b2b; color: white; font-size: 16px; box-sizing: border-box; }
-        .btn-lanzar { background: #ccff00; color: black; font-weight: 900; height: 60px; font-size: 18px; border: none; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; }
+        
+        /* Botones Principales */
+        .btn-lanzar { background: #ccff00; color: black; font-weight: 900; height: 60px; font-size: 18px; border: none; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 10px; }
+        
+        /* Botón dinámico Mostrar/Ocultar */
+        .btn-toggle-aviso { font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 20px; transition: 0.3s; }
+        .aviso-off { background: #444; color: white; }
+        .aviso-on { background: #ff4444; color: white; box-shadow: 0 0 15px rgba(255, 68, 68, 0.4); }
+
         .btn-confirmar { background: #28a745; color: white; font-weight: 900; height: 60px; border: none; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 10px; }
+        
         .grid-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .btn-turno { background: #444; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; }
-        .btn-vaciar { background: #ff4444; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; }
+        .btn-vaciar { background: #880000; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; }
+        
         hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
     </style>
 </head>
@@ -43,6 +53,8 @@
     
     <button class="btn-lanzar" onclick="prepararAviso()">Anunciar y Ubicar</button>
     
+    <button id="btnToggle" class="btn-toggle-aviso aviso-off" onclick="toggleAviso()">Mostrar Aviso</button>
+    
     <button class="btn-confirmar" onclick="confirmarLargada()">
         ✅ JUGADORES EN PISTA (OK)
     </button>
@@ -56,6 +68,21 @@
 </div>
 
 <script>
+    let estadoAvisoActual = false;
+
+    // Escuchar el estado del aviso para actualizar el botón automáticamente
+    db.ref("torneo/aviso_actual/activo").on("value", (snap) => {
+        estadoAvisoActual = snap.val();
+        const btn = document.getElementById("btnToggle");
+        if (estadoAvisoActual) {
+            btn.innerText = "Ocultar Aviso Gigante";
+            btn.className = "btn-toggle-aviso aviso-on";
+        } else {
+            btn.innerText = "Mostrar Aviso Gigante";
+            btn.className = "btn-toggle-aviso aviso-off";
+        }
+    });
+
     async function verificarOcupada(c) {
         const snap = await db.ref(`torneo/canchas/c${c}`).once('value');
         return snap.exists();
@@ -65,21 +92,31 @@
         const c = document.getElementById('numCancha').value;
         const p1 = document.getElementById('p1').value;
         const p2 = document.getElementById('p2').value;
-        if(!p1 || !p2) return alert("Ingresa nombres");
+        if(!p1 || !p2) return alert("Ingresa nombres de ambas parejas");
 
         if(await verificarOcupada(c)) {
-            if(!confirm(`La CANCHA ${c} está ocupada. ¿Reemplazar partido?`)) return;
+            if(!confirm(`La CANCHA ${c} ya está ocupada. ¿Deseas borrar lo anterior y poner este nuevo partido?`)) return;
         }
 
-        const info = { partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, cancha: c, activo: true, confirmado: false };
+        const info = { 
+            partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, 
+            cancha: c, 
+            activo: true, 
+            confirmado: false 
+        };
         db.ref(`torneo/canchas/c${c}`).set(info);
         db.ref("torneo/aviso_actual").set(info);
+    }
+
+    // Nueva función para el botón Mostrar/Ocultar
+    function toggleAviso() {
+        db.ref("torneo/aviso_actual/activo").set(!estadoAvisoActual);
     }
 
     async function prepararTurno() {
         const c = document.getElementById('numCancha').value;
         if(await verificarOcupada(c)) {
-            if(!confirm(`La CANCHA ${c} tiene datos. ¿Cambiar a TURNO?`)) return;
+            if(!confirm(`La CANCHA ${c} tiene datos. ¿Cambiar a TURNO simple?`)) return;
         }
         db.ref(`torneo/canchas/c${c}`).set({ partido: "TURNO", cancha: c, confirmado: true });
         db.ref("torneo/aviso_actual/activo").set(false);
@@ -94,10 +131,12 @@
     async function vaciarCancha() {
         const c = document.getElementById('numCancha').value;
         if(await verificarOcupada(c)) {
-            if(confirm(`¿VACIAR completamente la CANCHA ${c}?`)) {
+            if(confirm(`🚨 ¿ESTÁS SEGURO?\nVas a vaciar la CANCHA ${c}.`)) {
                 db.ref(`torneo/canchas/c${c}`).remove();
                 db.ref("torneo/aviso_actual/activo").set(false);
             }
+        } else {
+            alert("La cancha ya está vacía.");
         }
     }
 </script>
