@@ -6,6 +6,9 @@
     <title>JUEZ PADEL CONTROL - V49.2 stable</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script src="config.js"></script>
+    
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: sans-serif; background: #000; color: #fff; margin: 0; padding: 5px; text-align: center; padding-top: 30px; /* Espacio para la barra superior */ }
@@ -99,8 +102,10 @@
 
 <script>
     // --- RECUERDA CAMBIAR ESTO PARA CADA CLIENTE ---
-    const firebaseConfig = { apiKey: "AIzaSyCZXCceFne0HnGewV6pdpJ50MKetv6gvL0", databaseURL: "https://padel-cliente-2-default-rtdb.firebaseio.com", projectId: "padel-cliente-2" };
-    firebase.initializeApp(firebaseConfig); const db = firebase.database();
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="config.js"></script>
+
 
     let pts = [0,0], historialSets = [[0,0,0], [0,0,0]], setActualIdx = 0, modo = "NORMAL", limiteTB = 6, puntoOroActivo = false, modoSTB = 0, finalizado = false;
     let saqueJugadorIdx = -1, proximoSacadorEq = [0, 2], stack = [], segP = 0, segPel = 300, runP = false, runPel = false, visPel = true, segDescanso = 0, runDescanso = false, cartelGiganteFinal = false;
