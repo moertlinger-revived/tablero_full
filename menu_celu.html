@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Padel Vivo - Menú Principal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px 10px;
+            background: #000;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Permite scroll si el contenido es mayor a la pantalla */
+            box-sizing: border-box;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .logo-container h1 {
+            font-size: clamp(30px, 8vw, 50px); /* Tamaño fluido según pantalla */
+            font-weight: 900;
+            color: #ccff00;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(204, 255, 0, 0.4);
+        }
+
+        .logo-container p {
+            color: #666;
+            letter-spacing: 4px;
+            margin-top: 5px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Una sola columna en móvil por defecto */
+            gap: 15px;
+            width: 100%;
+            max-width: 500px; /* Ancho máximo para que no se vea gigante en tablets */
+        }
+
+        .menu-card {
+            background: #111;
+            border: 2px solid #222;
+            border-radius: 15px;
+            padding: 25px 15px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, border-color 0.2s;
+            -webkit-tap-highlight-color: transparent; /* Quita el cuadro azul al tocar en móviles */
+        }
+
+        .menu-card:active {
+            transform: scale(0.98);
+            border-color: #ccff00;
+            background: #1a1a1a;
+        }
+
+        .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .menu-card h2 {
+            margin: 0;
+            font-size: 20px;
+            text-transform: uppercase;
+            color: #ccff00;
+        }
+
+        .menu-card p {
+            color: #888;
+            font-size: 13px;
+            margin-top: 8px;
+            line-height: 1.3;
+            max-width: 250px;
+        }
+
+        /* Sección de Administración */
+        .admin-section {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column; /* Botones uno sobre otro en móvil */
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .admin-btn {
+            background: #1a1a1a;
+            color: #aaa;
+            text-decoration: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid #333;
+            transition: 0.2s;
+        }
+
+        .admin-btn:active {
+            background: #ccff00;
+            color: #000;
+        }
+
+        /* Ajustes para pantallas más grandes (Escritorio/Tablet) */
+        @media (min-width: 601px) {
+            .menu-grid {
+                grid-template-columns: 1fr 1fr;
+                max-width: 800px;
+            }
+            .admin-section {
+                flex-direction: row;
+                justify-content: center;
+                max-width: 800px;
+            }
+            .admin-btn {
+                flex: 1;
+            }
+            .logo-container h1 {
+                letter-spacing: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <h1>PADEL VIVO</h1>
+        <p>SISTEMA DE GESTIÓN</p>
+    </div>
+
+    <div class="menu-grid">
+        <a href="pantalla_puntos.html" class="menu-card">
+            <div class="icon">🎾</div>
+            <h2>Tablero de Puntos</h2>
+            <p>Marcador en tiempo real, Sets, Tiebreak y Punto de Oro.</p>
+        </a>
+
+        <a href="pantalla_turnos.html" class="menu-card">
+            <div class="icon">📅</div>
+            <h2>Tablero de Pistas</h2>
+            <p>Estado de las 8 canchas, turnos y avisos de llamado.</p>
+        </a>
+    </div>
+
+    <div class="admin-section">
+        <a href="control_puntos.html" class="admin-btn">⚙️ CONTROL JUEZ (PUNTOS)</a>
+        <a href="control_turnos.html" class="admin-btn">📋 CONTROL STAFF (PISTAS)</a>
+    </div>
+
+</body>
+</html>
