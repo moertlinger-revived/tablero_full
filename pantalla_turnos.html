@@ -17,54 +17,84 @@
         .clock { font-size: 32px; font-weight: bold; font-family: monospace; }
 
         .grid-container {
-            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 1fr);
-            gap: 15px; padding: 20px; height: calc(100vh - 85px); box-sizing: border-box;
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: repeat(4, 1fr);
+            gap: 15px; 
+            padding: 20px; 
+            height: calc(100vh - 100px);
+            box-sizing: border-box;
         }
 
-        .card { 
-            background: #111; border: 2px solid #333; border-radius: 15px; 
-            display: flex; align-items: center; padding: 0 30px; position: relative;
-            transition: 0.3s;
+        .card {
+            background: #111;
+            border: 2px solid #222;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            transition: 0.5s;
         }
 
-        .cancha-num { font-size: 50px; font-weight: 900; color: #444; margin-right: 30px; min-width: 60px; }
-        .partido-info { font-size: 32px; font-weight: bold; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cancha-num {
+            background: #222;
+            color: #888;
+            width: 80px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 900;
+            border-right: 2px solid #333;
+        }
+
+        .partido-info {
+            flex: 1;
+            padding: 0 30px;
+            font-size: 32px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+        }
 
         /* ESTADOS */
-        .ocupada { background: #1a1a1a; border-color: #ccff00; }
-        .ocupada .cancha-num { color: #ccff00; }
-        .es-turno { background: #222; border-color: #666; }
-        .es-turno .cancha-num { color: #666; }
-        .libre { color: #333; font-style: italic; }
+        .ocupada { border-color: #444; background: #050505; }
+        .ocupada .cancha-num { background: #ccff00; color: #000; }
+        .ocupada .partido-info { color: #fff; }
 
-        /* ANIMACIÓN DE TITILEO (NUEVO) */
-        @keyframes blink-border {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.01); background: #333; border-color: #fff; }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        .titilante {
-            animation: blink-border 0.8s infinite;
-            z-index: 10;
-            box-shadow: 0 0 30px rgba(204, 255, 0, 0.4);
-        }
+        .es-turno { border-color: #0088ff; }
+        .es-turno .cancha-num { background: #0088ff; color: #fff; }
+        .es-turno .partido-info { color: #0088ff; font-size: 45px; letter-spacing: 5px; }
 
-        /* OVERLAY AVISO GIGANTE */
+        .libre { color: #333; font-style: italic; font-size: 24px; }
+
+        /* Animación Titilante para partidos no confirmados */
+        @keyframes titilar {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        .titilante { animation: titilar 1s infinite; border-color: #ffcc00; }
+        .titilante .cancha-num { background: #ffcc00; color: #000; }
+
+        /* AVISO GIGANTE OVERLAY */
         #overlay-aviso {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); display: none; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 9999; text-align: center;
+            background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; text-align: center;
         }
-        .aviso-card { background: #000; padding: 50px; border: 10px solid #ccff00; border-radius: 40px; width: 85%; }
         .aviso-cancha { font-size: 60px; color: #ccff00; font-weight: 900; margin-bottom: 20px; }
-        .aviso-vs { font-size: 40px; color: #666; margin: 0 20px; }
-        .aviso-p1, .aviso-p2 { font-size: 90px; font-weight: 900; color: #fff; text-transform: uppercase; display: block; }
+        .aviso-nombres { font-size: 90px; font-weight: 900; line-height: 1.1; padding: 0 50px; }
+        .aviso-vs { color: #ccff00; font-size: 50px; margin: 20px 0; display: block; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Control de Pistas - Padel Vivo</h1>
+        <h1>Padel Vivo - Estado de Pistas</h1>
         <div class="clock" id="reloj">00:00:00</div>
     </div>
 
@@ -72,11 +102,11 @@
         </div>
 
     <div id="overlay-aviso">
-        <div class="aviso-card">
-            <div class="aviso-cancha" id="aviso-cancha">CANCHA 1</div>
-            <span class="aviso-p1" id="aviso-p1">PAREJA A</span>
-            <span class="aviso-vs" id="aviso-vs">VS</span>
-            <span class="aviso-p2" id="aviso-p2">PAREJA B</span>
+        <div class="aviso-cancha" id="aviso-cancha">CANCHA 1</div>
+        <div class="aviso-nombres">
+            <div id="aviso-p1">PAREJA A</div>
+            <div class="aviso-vs" id="aviso-vs">VS</div>
+            <div id="aviso-p2">PAREJA B</div>
         </div>
     </div>
 
@@ -99,27 +129,46 @@
             // 1. Limpiar todos los estados antes de actualizar
             for(let i=1; i<=8; i++){
                 const card = document.getElementById(`card-c${i}`);
+                const txtCancha = document.getElementById(`txt-c${i}`);
                 card.classList.remove('ocupada', 'es-turno', 'titilante');
-                document.getElementById(`txt-c${i}`).innerHTML = '<span class="libre">Disponible</span>';
+                txtCancha.innerHTML = '<span class="libre">Disponible</span>';
             }
 
             // 2. Cargar datos actuales
             if(canchas){
                 Object.keys(canchas).forEach(key => {
-                    const c = canchas[key]; // Datos de la cancha (partido, cancha, confirmado, etc.)
+                    const c = canchas[key]; 
                     const card = document.getElementById(`card-${key}`);
+                    const txtCancha = document.getElementById(`txt-${key}`);
                     
                     if(card){
                         card.classList.add('ocupada');
                         
-                        // LÓGICA DE TITILEO: Si confirmado es false, titila
                         if(c.confirmado === false) {
                             card.classList.add('titilante');
                         }
 
-                        if(c.partido === "TURNO") card.classList.add('es-turno');
-                        
-                        document.getElementById(`txt-${key}`).innerText = c.partido;
+                        if(c.partido === "TURNO") {
+                            card.classList.add('es-turno');
+                            txtCancha.innerText = c.partido;
+                        } else {
+                            // --- LÓGICA AUTOMÁTICA DE SEPARACIÓN EN RENGLONES ---
+                            const textoOriginal = c.partido || "";
+                            const partes = textoOriginal.split(/ vs /i);
+                            
+                            if(partes.length === 2) {
+                                // Insertamos el VS automático y dividimos en renglones
+                                txtCancha.innerHTML = `
+                                    <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; line-height: 1.1;">
+                                        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">${partes[0].trim()}</div>
+                                        <div style="font-size: 16px; color: #ccff00; opacity: 0.8; margin: 4px 0; font-weight: 900;">VS</div>
+                                        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">${partes[1].trim()}</div>
+                                    </div>
+                                `;
+                            } else {
+                                txtCancha.innerText = textoOriginal;
+                            }
+                        }
                     }
                 });
             }
@@ -137,7 +186,7 @@
                 if(partes.length === 2) {
                     document.getElementById('aviso-p1').innerText = partes[0].trim();
                     document.getElementById('aviso-p2').innerText = partes[1].trim();
-                    document.getElementById('aviso-vs').style.display = "inline-block";
+                    document.getElementById('aviso-vs').style.display = "block";
                 } else {
                     document.getElementById('aviso-p1').innerText = texto;
                     document.getElementById('aviso-p2').innerText = "";
@@ -151,7 +200,7 @@
             }
         });
 
-        // Reloj
+        // Reloj funcional
         setInterval(() => {
             document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
         }, 1000);
