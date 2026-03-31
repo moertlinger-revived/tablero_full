@@ -126,6 +126,10 @@
         const info = { partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, cancha: c, activo: true, confirmado: false };
         db.ref(`torneo/canchas/c${c}`).set(info);
         db.ref("torneo/aviso_actual").set(info);
+        
+        // Limpiar campos automáticamente después de lanzar
+        document.getElementById('p1').value = "";
+        document.getElementById('p2').value = "";
     }
 
     async function toggleAviso() {
