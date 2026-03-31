@@ -58,7 +58,7 @@
         <label>PAREJA B</label>
         <input type="text" id="p2" placeholder="Nombres Pareja 2">
         
-        <button class="btn-lanzar" onclick="lanzarAviso()">Anunciar y Ubicar</button>
+        <button class="btn-lanzar" onclick="prepararAviso()">Anunciar y Ubicar</button>
         <button class="btn-ocultar" onclick="ocultarAviso()">Ocultar Aviso Gigante</button>
         
         <button class="btn-confirmar" onclick="confirmarLargada()">
@@ -68,13 +68,12 @@
         <hr>
         
         <div class="grid-botones">
-            <button class="btn-turno" onclick="marcarTurno()">Marcar TURNO</button>
+            <button class="btn-turno" onclick="prepararTurno()">Marcar TURNO</button>
             <button class="btn-vaciar" onclick="vaciarCancha()">Vaciar Pista</button>
         </div>
     </div>
 
     <script>
-        // Configuración de tu base de datos
         const firebaseConfig = { 
             apiKey: "AIzaSyCQkDrlFCRKMYDxM54dkl24hGu-e-ZdbMs", 
             databaseURL: "https://padel-vivo-default-rtdb.firebaseio.com", 
@@ -83,50 +82,70 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. LANZAR AVISO (Aparece el cartel y empieza a titilar en el fondo)
-        function lanzarAviso() {
+        // FUNCIÓN AUXILIAR DE VERIFICACIÓN
+        async function verificarCanchaOcupada(canchaId) {
+            const snapshot = await db.ref(`torneo/canchas/c${canchaId}`).once('value');
+            return snapshot.exists();
+        }
+
+        // 1. LANZAR AVISO CON CONFIRMACIÓN
+        async function prepararAviso() {
             const c = document.getElementById('numCancha').value;
             const p1 = document.getElementById('p1').value;
             const p2 = document.getElementById('p2').value;
             
             if(!p1 || !p2) return alert("Por favor, ingresa los nombres de ambas parejas");
 
+            const ocupada = await verificarCanchaOcupada(c);
+            if (ocupada) {
+                const confirmar = confirm(`La CANCHA ${c} ya está ocupada. ¿Deseas SOBRESCRIBIRLA con el nuevo partido?`);
+                if (!confirmar) return;
+            }
+            ejecutarAviso(c, p1, p2);
+        }
+
+        function ejecutarAviso(c, p1, p2) {
             const info = { 
                 partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, 
                 cancha: c, 
                 activo: true, 
-                confirmado: false // Al ser nuevo, NO está confirmado (titila)
+                confirmado: false 
             };
-
-            // Actualiza la cancha y dispara el aviso gigante
             db.ref(`torneo/canchas/c${c}`).set(info);
             db.ref("torneo/aviso_actual").set(info);
         }
 
-        // 2. OCULTAR AVISO GIGANTE (La cancha sigue titilando en la grilla de 8)
+        // 2. MARCAR TURNO CON CONFIRMACIÓN
+        async function prepararTurno() {
+            const c = document.getElementById('numCancha').value;
+            const ocupada = await verificarCanchaOcupada(c);
+            
+            if (ocupada) {
+                const confirmar = confirm(`La CANCHA ${c} tiene un partido o turno asignado. ¿Deseas cambiarlo a TURNO simple?`);
+                if (!confirmar) return;
+            }
+            ejecutarTurno(c);
+        }
+
+        function ejecutarTurno(c) {
+            db.ref(`torneo/canchas/c${c}`).set({
+                partido: "TURNO",
+                cancha: c,
+                confirmado: true 
+            });
+            db.ref("torneo/aviso_actual/activo").set(false);
+        }
+
+        // RESTO DE FUNCIONES (Sin cambios de lógica pero integradas)
         function ocultarAviso() {
             db.ref("torneo/aviso_actual/activo").set(false);
         }
 
-        // 3. CONFIRMAR LARGADA (Deja de titilar y queda color firme)
         function confirmarLargada() {
             const c = document.getElementById('numCancha').value;
             db.ref(`torneo/canchas/c${c}/confirmado`).set(true);
         }
 
-        // 4. MARCAR COMO TURNO (Color gris, no hace aviso gigante)
-        function marcarTurno() {
-            const c = document.getElementById('numCancha').value;
-            db.ref(`torneo/canchas/c${c}`).set({
-                partido: "TURNO",
-                cancha: c,
-                confirmado: true // Los turnos no necesitan titilar
-            });
-            // Por seguridad ocultamos cualquier aviso previo
-            db.ref("torneo/aviso_actual/activo").set(false);
-        }
-
-        // 5. VACIAR CANCHA
         function vaciarCancha() {
             const c = document.getElementById('numCancha').value;
             db.ref(`torneo/canchas/c${c}`).remove();
