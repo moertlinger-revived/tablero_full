@@ -120,10 +120,8 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN CLIMA (Necesitas una API Key de OpenWeatherMap)
-        // Puedes obtener una gratis en https://openweathermap.org/
-        const API_KEY = "b8cd1edfef284215b87276fb7ca62c55"; 
-        const CIUDAD = "Concordia,AR"; // Cambia por tu ciudad
+        const API_KEY = "TU_API_KEY_AQUÍ"; 
+        const CIUDAD = "Concordia,AR"; 
 
         async function obtenerClima() {
             try {
@@ -139,11 +137,9 @@
             } catch (err) { console.error("Error clima:", err); }
         }
 
-        // Llamar clima al iniciar y cada 15 minutos
         obtenerClima();
         setInterval(obtenerClima, 900000);
 
-        // --- LÓGICA DE CANCHAS ---
         const grid = document.getElementById('grid');
         for(let i=1; i<=8; i++) {
             grid.innerHTML += `
@@ -194,19 +190,32 @@
         db.ref("torneo/aviso_actual").on("value", (snap) => {
             const data = snap.val();
             const overlay = document.getElementById('overlay-aviso');
-            if(data && data.activo && data.partido !== "TURNO"){
+            
+            if(data && data.activo){
                 const texto = data.partido || "";
-                const partes = texto.split(/ vs /i);
-                if(partes.length === 2) {
-                    document.getElementById('aviso-p1').innerText = partes[0].trim();
-                    document.getElementById('aviso-p2').innerText = partes[1].trim();
-                    document.getElementById('aviso-vs').style.display = "block";
-                } else {
+                
+                // Lógica modificada para Anuncio Libre
+                if(data.cancha === "AVISO" || data.tipo === "especial") {
                     document.getElementById('aviso-p1').innerText = texto;
                     document.getElementById('aviso-p2').innerText = "";
                     document.getElementById('aviso-vs').style.display = "none";
+                    document.getElementById('aviso-cancha').innerText = "MENSAJE";
+                } else if(data.partido !== "TURNO") {
+                    const partes = texto.split(/ vs /i);
+                    if(partes.length === 2) {
+                        document.getElementById('aviso-p1').innerText = partes[0].trim();
+                        document.getElementById('aviso-p2').innerText = partes[1].trim();
+                        document.getElementById('aviso-vs').style.display = "block";
+                    } else {
+                        document.getElementById('aviso-p1').innerText = texto;
+                        document.getElementById('aviso-p2').innerText = "";
+                        document.getElementById('aviso-vs').style.display = "none";
+                    }
+                    document.getElementById('aviso-cancha').innerText = "CANCHA " + data.cancha;
+                } else {
+                    overlay.style.display = 'none';
+                    return;
                 }
-                document.getElementById('aviso-cancha').innerText = "CANCHA " + data.cancha;
                 overlay.style.display = 'flex';
             } else { overlay.style.display = 'none'; }
         });
