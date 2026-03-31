@@ -16,6 +16,18 @@
         label { display: block; margin-bottom: 5px; color: #aaa; font-size: 14px; font-weight: bold; }
         select, input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; background: #2b2b2b; color: white; font-size: 16px; box-sizing: border-box; }
         
+        /* Estilo para el contenedor del input y el botón de borrar */
+        .input-group { position: relative; display: flex; align-items: center; }
+        .input-group input { padding-right: 45px; } /* Espacio para que el texto no tape el botón */
+        .btn-clear { 
+            position: absolute; right: 10px; top: 12px;
+            background: #444; color: white; border: none; 
+            width: 30px; height: 30px; border-radius: 50%; 
+            cursor: pointer; font-weight: bold; display: flex; 
+            align-items: center; justify-content: center;
+        }
+        .btn-clear:hover { background: #666; }
+
         .btn-lanzar { background: #ccff00; color: black; font-weight: 900; height: 60px; font-size: 18px; border: none; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 10px; }
         
         .btn-toggle-aviso { font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 20px; transition: 0.3s; }
@@ -47,9 +59,16 @@
     </select>
     
     <label>PAREJA A</label>
-    <input type="text" id="p1" placeholder="Pareja 1">
+    <div class="input-group">
+        <input type="text" id="p1" placeholder="Pareja 1">
+        <button class="btn-clear" onclick="limpiarCampo('p1')">✕</button>
+    </div>
+
     <label>PAREJA B</label>
-    <input type="text" id="p2" placeholder="Pareja 2">
+    <div class="input-group">
+        <input type="text" id="p2" placeholder="Pareja 2">
+        <button class="btn-clear" onclick="limpiarCampo('p2')">✕</button>
+    </div>
     
     <button class="btn-lanzar" onclick="prepararAviso()">Anunciar y Ubicar</button>
     <button id="btnToggle" class="btn-toggle-aviso aviso-off" onclick="toggleAviso()">Mostrar Aviso Gigante</button>
@@ -57,7 +76,10 @@
 
     <hr>
     <label>AVISO LIBRE (TEXTO PERSONALIZADO)</label>
-    <textarea id="textoLibre" rows="2" placeholder="Ej: SORTEO EN 5 MINUTOS..."></textarea>
+    <div class="input-group" style="display: block;">
+        <textarea id="textoLibre" rows="2" placeholder="Ej: SORTEO EN 5 MINUTOS..."></textarea>
+        <button class="btn-clear" style="top: 10px;" onclick="limpiarCampo('textoLibre')">✕</button>
+    </div>
     <button class="btn-lanzar" style="background:#ffcc00; height: 50px; font-size: 15px;" onclick="lanzarAvisoLibre()">Lanzar Aviso Especial</button>
 
     <hr>
@@ -70,7 +92,12 @@
 <script>
     let estadoAvisoActual = false;
 
-    // Escuchar el estado del aviso actual
+    // Función para limpiar campos
+    function limpiarCampo(id) {
+        document.getElementById(id).value = "";
+        document.getElementById(id).focus();
+    }
+
     db.ref("torneo/aviso_actual/activo").on("value", (snap) => {
         estadoAvisoActual = snap.val();
         const btn = document.getElementById("btnToggle");
