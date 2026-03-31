@@ -15,13 +15,14 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .logo-container {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
+            margin-top: 20px;
         }
 
         .logo-container h1 {
@@ -39,61 +40,60 @@
             letter-spacing: 8px;
             margin-top: -5px;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
         .menu-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 25px;
             width: 90%;
             max-width: 900px;
         }
 
         .menu-card {
-            background: #111;
-            border: 2px solid #222;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 35px 25px;
             border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
             text-decoration: none;
             color: white;
+            text-align: center;
+            transition: 0.3s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
         }
 
         .menu-card:hover {
             border-color: #ccff00;
-            transform: translateY(-10px);
-            background: #1a1a1a;
-            box-shadow: 0 10px 40px rgba(204, 255, 0, 0.1);
+            background: #111;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(204, 255, 0, 0.1);
         }
 
         .icon {
-            font-size: 50px;
+            font-size: 45px;
             margin-bottom: 20px;
         }
 
         .menu-card h2 {
             margin: 0;
-            font-size: 24px;
+            font-size: 22px;
             text-transform: uppercase;
+            letter-spacing: 1px;
             color: #ccff00;
         }
 
         .menu-card p {
+            margin: 15px 0 0;
             color: #888;
             font-size: 14px;
-            margin-top: 10px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
-        /* Estilo para los botones de staff (más pequeños abajo) */
         .admin-section {
-            margin-top: 60px;
+            margin-top: 40px;
             display: flex;
             gap: 15px;
         }
@@ -115,9 +115,66 @@
             color: #000;
         }
 
+        /* --- SECCIÓN DE CÓDIGOS QR PARA ESCANEAR DESDE PC --- */
+        .qr-container {
+            margin-top: 50px;
+            margin-bottom: 30px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 30px;
+            border-radius: 25px;
+            text-align: center;
+            width: 90%;
+            max-width: 900px;
+        }
+
+        .qr-container h3 {
+            color: #ccff00;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 18px;
+        }
+
+        .qr-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .qr-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-frame {
+            background: white;
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(204, 255, 0, 0.15);
+        }
+
+        .qr-frame img {
+            width: 160px;
+            height: 160px;
+            display: block;
+        }
+
+        .qr-label {
+            margin-top: 12px;
+            font-weight: bold;
+            color: #ccff00;
+            font-size: 14px;
+        }
+
         @media (max-width: 600px) {
             .menu-grid { grid-template-columns: 1fr; }
             .logo-container h1 { font-size: 35px; }
+            .qr-wrapper { gap: 20px; }
+            .qr-frame img { width: 120px; height: 120px; }
+            body { height: auto; padding-bottom: 20px; }
         }
     </style>
 </head>
@@ -138,13 +195,35 @@
         <a href="pantalla_turnos.html" class="menu-card">
             <div class="icon">📅</div>
             <h2>Tablero de Pistas</h2>
-            <p>Estado de las 8 canchas, turnos y avisos de llamado.</p>
+            <p>Estado de las canchas, próximos turnos y visor de clima.</p>
         </a>
     </div>
 
     <div class="admin-section">
-        <a href="control_puntos.html" class="admin-btn">⚙️ CONTROL JUEZ (PUNTOS)</a>
-        <a href="control_turnos.html" class="admin-btn">📋 CONTROL STAFF (PISTAS)</a>
+        <a href="control_turnos.html" class="admin-btn">Control Staff</a>
+        <a href="control_puntos.html" class="admin-btn">Control Juez</a>
+    </div>
+
+    <div class="qr-container">
+        <h3>Escaneo rápido para Celular</h3>
+        <div class="qr-wrapper">
+            
+            <div class="qr-item">
+                <div class="qr-frame">
+                    <img src="https://lh3.googleusercontent.com/u/0/d/1RogtGQ9b1iTkoZimMuQDIK1xSQGsLo1N" alt="QR Staff">
+                </div>
+                <div class="qr-label">CONTROL STAFF</div>
+            </div>
+
+            
+            <div class="qr-item">
+                <div class="qr-frame">
+                    <img src="https://lh3.googleusercontent.com/u/0/d/1ZmelU_rcevoM5ObaR6evcOIRTJAfvfAl" alt="QR Juez">
+                </div>
+                <div class="qr-label">CONTROL JUEZ</div>
+            </div>
+
+        </div>
     </div>
 
 </body>
