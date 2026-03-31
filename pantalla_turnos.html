@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Visor de Canchas - Padel Vivo</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; overflow: hidden; }
+        
+        .header { background: #0a0a0a; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #ccff00; }
+        .header h1 { margin: 0; font-size: 28px; color: #ccff00; text-transform: uppercase; letter-spacing: 2px; }
+        .clock { font-size: 32px; font-weight: bold; font-family: monospace; }
+
+        .grid-container {
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 1fr);
+            gap: 15px; padding: 20px; height: calc(100vh - 85px); box-sizing: border-box;
+        }
+
+        .cancha-card {
+            background: #111; border-radius: 15px; display: flex; align-items: center;
+            padding: 10px 30px; border: 2px solid #222; transition: 0.4s; position: relative; border-left-width: 15px;
+        }
+
+        .card-indoor { border-left-color: #333; }
+        .card-outdoor { border-left-color: #0088ff; background: #050a15; }
+
+        /* ESTADO OCUPADA */
+        .ocupada.card-indoor { border-left-color: #ccff00; background: #1a1a1a; }
+        .ocupada.card-outdoor { border-left-color: #0088ff; background: #0a1525; }
+
+        /* ANIMACIÓN TITILANTE (Cuando falta confirmar) */
+        .titilante {
+            animation: parpadeo 1s infinite alternate;
+            border-color: #ccff00 !important;
+            box-shadow: 0 0 20px rgba(204, 255, 0, 0.2);
+        }
+
+        @keyframes parpadeo {
+            from { background: #1a1a1a; }
+            to { background: #333; }
+        }
+
+        /* MODO TURNO (GRIS) */
+        .es-turno { 
+            border-left-color: #444 !important; 
+            background: #0a0a0a !important; 
+            opacity: 0.7; 
+            animation: none !important; /* El turno no titila */
+        }
+        .es-turno .cancha-num { color: #444 !important; }
+        .es-turno .partido-info { color: #888 !important; font-style: italic; }
+
+        .cancha-num { font-size: 45px; font-weight: 900; margin-right: 30px; color: #333; min-width: 60px; }
+        .ocupada .cancha-num { color: #fff; }
+
+        .partido-info { font-size: 24px; font-weight: 800; text-transform: uppercase; color: #fff; }
+        .libre { color: #222; font-style: italic; font-size: 18px; }
+        
+        .tag { position: absolute; top: 5px; right: 15px; font-size: 11px; font-weight: bold; color: #444; }
+
+        /* AVISO GIGANTE */
+        #overlay-aviso {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); display: none; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 9999;
+        }
+        .cartel {
+            background: #ccff00; color: #000; padding: 50px 80px; border-radius: 40px;
+            text-align: center; border: 15px solid #fff; animation: pulse 0.7s infinite alternate;
+        }
+        @keyframes pulse { from { transform: scale(0.96); } to { transform: scale(1.04); } }
+
+        .aviso-pareja { font-size: 75px; font-weight: 900; line-height: 1.1; text-transform: uppercase; }
+        .aviso-vs { font-size: 30px; font-weight: 900; margin: 10px 0; background: rgba(0,0,0,0.1); padding: 5px 25px; border-radius: 15px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>SITUACIÓN DE PISTAS</h1>
+        <div class="clock" id="reloj">00:00:00</div>
+    </div>
+
+    <div class="grid-container" id="grid-canchas"></div>
+
+    <div id="overlay-aviso">
+        <div class="cartel" id="cartel-aviso">
+            <div style="font-size: 30px; font-weight: 900; text-transform: uppercase;">Llamado a Pista</div>
+            <div id="contenedor-nombres" style="margin: 25px 0;">
+                <div id="aviso-p1" class="aviso-pareja">---</div>
+                <div id="aviso-vs" class="aviso-vs">VS</div>
+                <div id="aviso-p2" class="aviso-pareja">---</div>
+            </div>
+            <div id="aviso-cancha" style="font-size: 90px; font-weight: 900; background: #000; color: #fff; padding: 10px 50px; border-radius: 20px; display: inline-block;">CANCHA 1</div>
+        </div>
+    </div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="config.js"></script>
+
+    const grid = document.getElementById('grid-canchas');
+    for(let i=1; i<=8; i++){
+        const tipo = i <= 6 ? "INDOOR" : "OUTDOOR";
+        const clase = i <= 6 ? "card-indoor" : "card-outdoor";
+        grid.innerHTML += `
+            <div class="cancha-card ${clase}" id="card-c${i}">
+                <div class="tag">${tipo}</div>
+                <div class="cancha-num">${i}</div>
+                <div class="partido-info" id="txt-c${i}"><span class="libre">Disponible</span></div>
+            </div>
+        `;
+    }
+
+    db.ref("torneo/canchas").on("value", (snap) => {
+        const canchas = snap.val();
+        // Resetear canchas
+        for(let i=1; i<=8; i++){
+            const card = document.getElementById(`card-c${i}`);
+            card.classList.remove('ocupada', 'es-turno', 'titilante');
+            document.getElementById(`txt-c${i}`).innerHTML = '<span class="libre">Disponible</span>';
+        }
+        
+        if(canchas){
+            Object.keys(canchas).forEach(key => {
+                const c = canchas[key];
+                const card = document.getElementById(`card-${key}`);
+                if(card){
+                    card.classList.add('ocupada');
+                    
+                    if(c.partido === "TURNO") {
+                        card.classList.add('es-turno');
+                    } else if (!c.confirmado) {
+                        // SI ES UN PARTIDO Y NO HA SIDO CONFIRMADO, TITILA
+                        card.classList.add('titilante');
+                    }
+                    
+                    document.getElementById(`txt-${key}`).innerText = c.partido;
+                }
+            });
+        }
+    });
+
+    db.ref("torneo/aviso_actual").on("value", (snap) => {
+        const data = snap.val();
+        const overlay = document.getElementById('overlay-aviso');
+        if(data && data.activo && data.partido !== "TURNO"){
+            const texto = data.partido || "";
+            const partes = texto.split(/ vs /i);
+            if(partes.length === 2) {
+                document.getElementById('aviso-p1').innerText = partes[0].trim();
+                document.getElementById('aviso-p2').innerText = partes[1].trim();
+                document.getElementById('aviso-vs').style.display = "inline-block";
+            } else {
+                document.getElementById('aviso-p1').innerText = texto;
+                document.getElementById('aviso-p2').innerText = "";
+                document.getElementById('aviso-vs').style.display = "none";
+            }
+            document.getElementById('aviso-cancha').innerText = "CANCHA " + data.cancha;
+            overlay.style.display = 'flex';
+        } else { 
+            overlay.style.display = 'none'; 
+        }
+    });
+
+    setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
+</script>
+</body>
+</html>

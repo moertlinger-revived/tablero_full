@@ -1,0 +1,9 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyD07HOBcrcN3GzgRkWwvO4VX-42MO7YSmI",
+  authDomain: "tablero-full-revived.firebaseapp.com",
+  databaseURL: "https://tablero-full-revived-default-rtdb.firebaseio.com",
+  projectId: "tablero-full-revived",
+  storageBucket: "tablero-full-revived.firebasestorage.app",
+  messagingSenderId: "534642759210",
+  appId: "1:534642759210:web:86e84f395fd7a9275e1553"
+};
