@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JUEZ PADEL CONTROL - V49.2 stable</title>
+    <title>JUEZ PADEL CONTROL - V49.3</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="config.js"></script>
@@ -25,7 +25,6 @@
         .timer-val { font-family: monospace; font-size: 18px; color: #ccff00; font-weight: bold; }
         
         .btn-t { font-size: 10px; padding: 5px 10px; background: #444; color: #fff; border: none; border-radius: 3px; cursor: pointer; transition: 0.3s; }
-        /* Estilos para el botón de tiempo activo */
         .btn-t.playing { background: #28a745; color: white; box-shadow: 0 0 10px rgba(40, 167, 69, 0.5); }
 
         .equipo-contenedor { background: #111; border: 2px solid #333; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
@@ -35,19 +34,15 @@
         
         .puntos-display { font-size: 55px; font-weight: 900; color: #c6a052; margin: 5px 0; }
         .btn-punto { width: 100%; padding: 15px; background: #c6a052; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; color: #000; }
-        
-        .aviso-cambio { background: #ffcc00; color: #000; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 12px; position: fixed; top: 10%; left: 5%; width: 90%; z-index: 1000; display: none; border: 5px solid #fff; box-shadow: 0 0 40px rgba(0,0,0,0.8); cursor: pointer; }
     </style>
 </head>
 <body onload="render()">
-    <div class="version-tag">CONTROL TABLERO REVIVED (VER. 49.3)</div>
+    <div class="version-tag">CONTROL JUEZ V49.3</div>
     
     <div class="encabezado">
-        <button class="config-regla" onclick="cambiarReglaTB()" id="btn-regla">TB: 6-6</button>
-        <button class="config-regla" onclick="cicloSTB()" id="btn-stb">3er SET: NORMAL</button>
         <button class="config-regla" onclick="togglePuntoOro()" id="btn-oro">ORO: NO</button>
-        <button class="config-regla" style="background:#555;" onclick="deshacer()">↩ CORREGIR</button>
-        <button class="btn-reset-total" onclick="resetTotal()">⚠️ RESET</button>
+        <button class="config-regla" onclick="deshacer()" style="background:#555;">↩ CORREGIR</button>
+        <button class="btn-reset-total" onclick="resetTotal()">⚠️ RESET TOTAL</button>
     </div>
 
     <div class="zona-tiempos">
@@ -68,82 +63,99 @@
 
     <div class="tablero-juez">
         <div class="equipo-contenedor">
-            <div class="fila-jugador" id="f-j0"><span class="nombre-j" id="n0" onclick="cambiarNombre(0)">J1A</span><button class="btn-t" onclick="definirSaque(0)">SAQUE</button></div>
-            <div class="fila-jugador" id="f-j1"><span class="nombre-j" id="n1" onclick="cambiarNombre(1)">J1B</span><button class="btn-t" onclick="definirSaque(1)">SAQUE</button></div>
+            <div class="fila-jugador" id="f-j0"><span class="nombre-j" id="n0" onclick="cambiarNombre(0)">JUGADOR 1A</span><button class="btn-t" onclick="definirSaque(0)">SAQUE</button></div>
+            <div class="fila-jugador" id="f-j1"><span class="nombre-j" id="n1" onclick="cambiarNombre(1)">JUGADOR 1B</span><button class="btn-t" onclick="definirSaque(1)">SAQUE</button></div>
             <div class="puntos-display" id="pA">0</div>
-            <button class="btn-punto" onclick="sumar(0)">+ EQ 1</button>
+            <button class="btn-punto" onclick="sumar(0)">+ EQUIPO 1</button>
         </div>
         <div class="equipo-contenedor">
-            <div class="fila-jugador" id="f-j2"><span class="nombre-j" id="n2" onclick="cambiarNombre(2)">J2A</span><button class="btn-t" onclick="definirSaque(2)">SAQUE</button></div>
-            <div class="fila-jugador" id="f-j3"><span class="nombre-j" id="n3" onclick="cambiarNombre(3)">J2B</span><button class="btn-t" onclick="definirSaque(3)">SAQUE</button></div>
+            <div class="fila-jugador" id="f-j2"><span class="nombre-j" id="n2" onclick="cambiarNombre(2)">JUGADOR 2A</span><button class="btn-t" onclick="definirSaque(2)">SAQUE</button></div>
+            <div class="fila-jugador" id="f-j3"><span class="nombre-j" id="n3" onclick="cambiarNombre(3)">JUGADOR 2B</span><button class="btn-t" onclick="definirSaque(3)">SAQUE</button></div>
             <div class="puntos-display" id="pB">0</div>
-            <button class="btn-punto" onclick="sumar(1)">+ EQ 2</button>
+            <button class="btn-punto" onclick="sumar(1)">+ EQUIPO 2</button>
         </div>
     </div>
 
     <script>
-        // VARIABLES GLOBALES
+        // ESTADO DEL JUEGO
         let pts = [0,0];
         let historialSets = [[0,0,0], [0,0,0]];
         let setActualIdx = 0;
-        let modo = "NORMAL"; // O "TIEBREAK"
-        let limiteTB = 6;
         let puntoOroActivo = false;
-        let modoSTB = 0;
         let finalizado = false;
         let saqueJugadorIdx = -1;
+        let stack = [];
 
-        // VARIABLES DE TIEMPO
-        let segP = 0; 
-        let segPel = 300;
-        let runP = false; 
-        let runPel = false;
-        let startTimePartido = 0;
-        let acumuladoPasado = 0;
+        // TIEMPOS
+        let segP = 0, segPel = 300;
+        let runP = false, runPel = false;
+        let startTimePartido = 0, acumuladoPasado = 0;
 
-        // BUCLE DE RELOJ
         setInterval(() => {
-            if(runP) {
-                segP = acumuladoPasado + Math.floor((Date.now() - startTimePartido) / 1000);
-                actualizarRelojes();
-            }
-            if(runPel && segPel > 0) {
-                segPel--;
-                actualizarRelojes();
-            }
+            if(runP) { segP = acumuladoPasado + Math.floor((Date.now() - startTimePartido) / 1000); actualizarRelojes(); }
+            if(runPel && segPel > 0) { segPel--; actualizarRelojes(); }
         }, 1000);
 
+        function guardarEstado() {
+            stack.push(JSON.stringify({ pts: [...pts], historialSets: JSON.parse(JSON.stringify(historialSets)), setActualIdx, finalizado }));
+            if(stack.length > 10) stack.shift();
+        }
+
+        function deshacer() {
+            if(stack.length > 0) {
+                let estado = JSON.parse(stack.pop());
+                pts = estado.pts; historialSets = estado.historialSets; setActualIdx = estado.setActualIdx; finalizado = estado.finalizado;
+                render();
+            }
+        }
+
+        function sumar(eq) {
+            if(finalizado) return;
+            guardarEstado();
+            let opp = eq === 0 ? 1 : 0;
+
+            // Lógica Puntos (0, 15, 30, 40, Ad)
+            if(pts[eq] < 3) {
+                pts[eq]++;
+            } else if(pts[eq] === 3) {
+                if(pts[opp] < 3 || puntoOroActivo) { ganasteJuego(eq); }
+                else if(pts[opp] === 3) { pts[eq] = 4; } // Ventaja
+                else if(pts[opp] === 4) { pts[opp] = 3; } // Deuce
+            } else if(pts[eq] === 4) {
+                ganasteJuego(eq);
+            }
+            render();
+        }
+
+        function ganasteJuego(eq) {
+            pts = [0,0];
+            historialSets[eq][setActualIdx]++;
+            // Lógica de Set (simplificada a 6 juegos)
+            if(historialSets[eq][setActualIdx] >= 6) {
+                if(setActualIdx < 2) setActualIdx++;
+                else finalizado = true;
+            }
+        }
+
+        function togglePuntoOro() { puntoOroActivo = !puntoOroActivo; render(); }
+        
         function toggleTimer(t) {
             const btnP = document.getElementById('btn-play-partido');
             const btnPel = document.getElementById('btn-play-peloteo');
-
             if(t === 'partido') {
                 runP = !runP;
-                if(runP) {
-                    startTimePartido = Date.now();
-                    btnP.innerText = "PAUSAR PARTIDO";
-                    btnP.classList.add('playing');
-                } else {
-                    acumuladoPasado = segP;
-                    btnP.innerText = "REANUDAR";
-                    btnP.classList.remove('playing');
-                }
+                if(runP) { startTimePartido = Date.now(); btnP.innerText = "PAUSAR PARTIDO"; btnP.classList.add('playing'); }
+                else { acumuladoPasado = segP; btnP.innerText = "REANUDAR"; btnP.classList.remove('playing'); }
             } else {
                 runPel = !runPel;
-                if(runPel) {
-                    btnPel.innerText = "PAUSA";
-                    btnPel.classList.add('playing');
-                } else {
-                    btnPel.innerText = "PLAY";
-                    btnPel.classList.remove('playing');
-                }
+                btnPel.innerText = runPel ? "PAUSA" : "PLAY";
+                btnPel.classList.toggle('playing', runPel);
             }
         }
 
         function resetTimer(t) {
             if(t === 'peloteo') {
-                segPel = 300;
-                runPel = false;
+                segPel = 300; runPel = false;
                 document.getElementById('btn-play-peloteo').innerText = "PLAY";
                 document.getElementById('btn-play-peloteo').classList.remove('playing');
                 actualizarRelojes();
@@ -151,74 +163,45 @@
         }
 
         function resetTotal() {
-            if(!confirm("¿RESETEAR TODO EL PARTIDO A CERO?")) return;
-            
-            // 1. Reiniciar puntos y sets
-            pts = [0,0];
-            historialSets = [[0,0,0], [0,0,0]];
-            setActualIdx = 0;
-            modo = "NORMAL";
-            finalizado = false;
-            saqueJugadorIdx = -1;
-
-            // 2. Reiniciar reloj de partido
-            runP = false;
-            segP = 0;
-            acumuladoPasado = 0;
-            startTimePartido = 0;
-            
-            const btnP = document.getElementById('btn-play-partido');
-            btnP.innerText = "INICIAR PARTIDO";
-            btnP.classList.remove('playing');
-
+            if(!confirm("¿BORRAR TODO?")) return;
+            pts = [0,0]; historialSets = [[0,0,0], [0,0,0]]; setActualIdx = 0; finalizado = false;
+            segP = 0; acumuladoPasado = 0; runP = false;
+            document.getElementById('btn-play-partido').innerText = "INICIAR PARTIDO";
+            document.getElementById('btn-play-partido').classList.remove('playing');
             render();
         }
 
         function actualizarRelojes() {
             let h = Math.floor(segP/3600), m = Math.floor((segP%3600)/60), s = segP%60;
-            document.getElementById('disp-partido').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            let p_time = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            document.getElementById('disp-partido').innerText = p_time;
             
             let mp = Math.floor(segPel/60), sp = segPel%60;
             document.getElementById('disp-peloteo').innerText = `${mp.toString().padStart(2,'0')}:${sp.toString().padStart(2,'0')}`;
+            
+            // Enviamos el tiempo del partido a Firebase para el tablero
+            db.ref("marcador/actual/tiempo").set(p_time);
         }
 
         function render() {
             const labels = ["0","15","30","40","Ad"];
-            document.getElementById('pA').innerText = modo === "NORMAL" ? labels[pts[0]] : pts[0];
-            document.getElementById('pB').innerText = modo === "NORMAL" ? labels[pts[1]] : pts[1];
-            
-            for(let i=0; i<4; i++) {
-                document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx === i);
-            }
+            document.getElementById('pA').innerText = labels[pts[0]] || pts[0];
+            document.getElementById('pB').innerText = labels[pts[1]] || pts[1];
+            document.getElementById('btn-oro').classList.toggle('activo', puntoOroActivo);
+            document.getElementById('btn-oro').innerText = "ORO: " + (puntoOroActivo?"SÍ":"NO");
 
-            // Sincronizar con Firebase
-            db.ref("marcador/actual").set({
-                n0: document.getElementById('n0').innerText,
-                n1: document.getElementById('n1').innerText,
-                n2: document.getElementById('n2').innerText,
-                n3: document.getElementById('n3').innerText,
-                p0: document.getElementById('pA').innerText,
-                p1: document.getElementById('pB').innerText,
-                h0: historialSets[0],
-                h1: historialSets[1],
-                final: finalizado
+            for(let i=0; i<4; i++) document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx === i);
+
+            db.ref("marcador/actual").update({
+                n0: document.getElementById('n0').innerText, n1: document.getElementById('n1').innerText,
+                n2: document.getElementById('n2').innerText, n3: document.getElementById('n3').innerText,
+                p0: document.getElementById('pA').innerText, p1: document.getElementById('pB').innerText,
+                h0: historialSets[0], h1: historialSets[1], set: setActualIdx, final: finalizado
             });
-            actualizarRelojes();
-        }
-
-        function sumar(eq) {
-            if(finalizado) return;
-            if(modo === "NORMAL") {
-                if(pts[eq] < 3) pts[eq]++;
-                else { pts = [0,0]; historialSets[eq][setActualIdx]++; }
-            } else {
-                pts[eq]++;
-            }
-            render();
         }
 
         function definirSaque(i) { saqueJugadorIdx = i; render(); }
-        function cambiarNombre(i) { let n = prompt("Nuevo nombre:"); if(n) document.getElementById('n'+i).innerText = n.toUpperCase(); render(); }
+        function cambiarNombre(i) { let n = prompt("Nombre:"); if(n) document.getElementById('n'+i).innerText = n.toUpperCase(); render(); }
     </script>
 </body>
 </html>
