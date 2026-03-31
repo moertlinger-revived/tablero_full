@@ -251,7 +251,21 @@
         } 
     }
 
-    function resetTotal() { if(confirm("RESET?")) { localStorage.clear(); db.ref("marcador").remove(); location.reload(); } }
+    function resetTotal() { 
+    if(confirm("RESET?")) { 
+        // 1. Detener cualquier proceso de guardado/timer
+        runP = false; 
+        runPel = false;
+
+        // 2. Limpiar persistencia
+        localStorage.clear(); 
+
+        // 3. Limpiar Base de Datos y RECARGAR inmediatamente
+        db.ref("marcador").remove().then(() => {
+            location.reload(); 
+        });
+    } 
+}
     
     function guardarLocal() { 
         localStorage.setItem('padel_v48', JSON.stringify({
