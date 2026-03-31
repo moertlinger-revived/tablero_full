@@ -89,7 +89,6 @@
 
         function resetTotal() {
             if(!confirm("¿RESETEAR TODO EL PARTIDO A CERO?")) return;
-            // Reinicio de variables de puntuación
             pts = [0,0];
             historialSets = [[0,0,0], [0,0,0]];
             setActualIdx = 0;
@@ -113,7 +112,6 @@
             document.getElementById('btn-oro').innerText = "ORO: " + (puntoOroActivo?"SÍ":"NO");
             for(let i=0; i<4; i++) document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx===i); 
             
-            // Actualizar colores de botones de tiempo
             document.getElementById('btn-t-partido').classList.toggle('btn-activo', runP);
             document.getElementById('btn-t-peloteo').classList.toggle('btn-activo', runPel);
 
@@ -121,7 +119,8 @@
                 n0:document.getElementById('n0').innerText, n1:document.getElementById('n1').innerText,
                 n2:document.getElementById('n2').innerText, n3:document.getElementById('n3').innerText,
                 p0:document.getElementById('pA').innerText, p1:document.getElementById('pB').innerText,
-                h0:historialSets[0], h1:historialSets[1], set:setActualIdx, oro:puntoOroActivo, tb:modo!=="NORMAL", final:finalizado
+                h0:historialSets[0], h1:historialSets[1], set:setActualIdx, oro:puntoOroActivo, tb:modo!=="NORMAL", final:finalizado,
+                visPeloteo: visPel // Enviamos el estado de visibilidad al tablero
             });
             actualizarRelojes();
         }
@@ -131,11 +130,13 @@
             document.getElementById('disp-partido').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
             let mp = Math.floor(segPel/60), sp = segPel%60;
             document.getElementById('disp-peloteo').innerText = `${mp.toString().padStart(2,'0')}:${sp.toString().padStart(2,'0')}`;
+            
+            // Sincronizar tiempos en Firebase
+            db.ref("marcador/actual/tiempos").update({ partido: segP, peloteo: segPel });
         }
 
         function sumar(eq) {
             if(finalizado) return;
-            // Lógica simplificada para ejemplo: suma puntos
             if(modo==="NORMAL") {
                 if(pts[eq] < 3) pts[eq]++;
                 else { pts = [0,0]; historialSets[eq][setActualIdx]++; }
@@ -153,7 +154,12 @@
             } else {
                 runPel = !runPel; 
             }
-            render(); // Renderizamos para aplicar el cambio de color inmediatamente
+            render();
+        }
+
+        function toggleVisPeloteo() {
+            visPel = !visPel;
+            render();
         }
         
         function resetTimer(t) { if(t==='peloteo') { segPel = 300; runPel = false; render(); } }
