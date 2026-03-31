@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Visor de Canchas - Padel Vivo</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="config.js"></script>
+
+    <style>
+        body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; overflow: hidden; }
+        
+        .header { 
+            background: #0a0a0a; 
+            padding: 10px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 4px solid #ccff00; 
+        }
+        .header h1 { margin: 0; font-size: 28px; color: #ccff00; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Contenedor de Info Derecha (Reloj + Clima) */
+        .info-derecha { display: flex; align-items: center; gap: 30px; }
+        
+        .weather-box { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 24px; font-weight: bold; }
+        .weather-icon { width: 45px; height: 45px; }
+        
+        .clock { font-size: 32px; font-weight: bold; font-family: monospace; color: #fff; }
+
+        .grid-container {
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: repeat(4, 1fr);
+            gap: 15px; 
+            padding: 20px; 
+            height: calc(100vh - 80px);
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: #111;
+            border: 2px solid #222;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            transition: 0.5s;
+        }
+
+        .cancha-num {
+            background: #222;
+            color: #888;
+            width: 80px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 900;
+            border-right: 2px solid #333;
+        }
+
+        .partido-info {
+            flex: 1;
+            padding: 0 30px;
+            font-size: 32px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .ocupada { border-color: #444; background: #050505; }
+        .ocupada .cancha-num { background: #ccff00; color: #000; }
+        .es-turno { border-color: #0088ff; }
+        .es-turno .cancha-num { background: #0088ff; color: #fff; }
+        .es-turno .partido-info { color: #0088ff; font-size: 45px; letter-spacing: 5px; }
+        .libre { color: #333; font-style: italic; font-size: 24px; }
+
+        @keyframes titilar { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .titilante { animation: titilar 1s infinite; border-color: #ffcc00; }
+        .titilante .cancha-num { background: #ffcc00; color: #000; }
+
+        #overlay-aviso {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; text-align: center;
+        }
+        .aviso-cancha { font-size: 60px; color: #ccff00; font-weight: 900; margin-bottom: 20px; }
+        .aviso-nombres { font-size: 90px; font-weight: 900; line-height: 1.1; padding: 0 50px; }
+        .aviso-vs { color: #ccff00; font-size: 50px; margin: 20px 0; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Padel Vivo</h1>
+        <div class="info-derecha">
+            <div id="clima" class="weather-box">
+                <img id="w-icon" src="" class="weather-icon" style="display:none;">
+                <span id="w-temp">--°C</span>
+            </div>
+            <div class="clock" id="reloj">00:00:00</div>
+        </div>
+    </div>
+
+    <div class="grid-container" id="grid"></div>
+
+    <div id="overlay-aviso">
+        <div class="aviso-cancha" id="aviso-cancha">CANCHA 1</div>
+        <div class="aviso-nombres">
+            <div id="aviso-p1">PAREJA A</div>
+            <div class="aviso-vs" id="aviso-vs">VS</div>
+            <div id="aviso-p2">PAREJA B</div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN CLIMA (Necesitas una API Key de OpenWeatherMap)
+        // Puedes obtener una gratis en https://openweathermap.org/
+        const API_KEY = "TU_API_KEY_AQUÍ"; 
+        const CIUDAD = "Concordia,AR"; // Cambia por tu ciudad
+
+        async function obtenerClima() {
+            try {
+                const resp = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CIUDAD}&units=metric&appid=${API_KEY}`);
+                const data = await resp.json();
+                if(data.main) {
+                    document.getElementById('w-temp').innerText = Math.round(data.main.temp) + "°C";
+                    const iconCode = data.weather[0].icon;
+                    const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+                    document.getElementById('w-icon').src = iconUrl;
+                    document.getElementById('w-icon').style.display = "block";
+                }
+            } catch (err) { console.error("Error clima:", err); }
+        }
+
+        // Llamar clima al iniciar y cada 15 minutos
+        obtenerClima();
+        setInterval(obtenerClima, 900000);
+
+        // --- LÓGICA DE CANCHAS ---
+        const grid = document.getElementById('grid');
+        for(let i=1; i<=8; i++) {
+            grid.innerHTML += `
+                <div class="card" id="card-c${i}">
+                    <div class="cancha-num">${i}</div>
+                    <div class="partido-info" id="txt-c${i}"><span class="libre">Disponible</span></div>
+                </div>
+            `;
+        }
+
+        db.ref("torneo/canchas").on("value", (snap) => {
+            const canchas = snap.val();
+            for(let i=1; i<=8; i++){
+                const card = document.getElementById(`card-c${i}`);
+                const txtCancha = document.getElementById(`txt-c${i}`);
+                card.classList.remove('ocupada', 'es-turno', 'titilante');
+                txtCancha.innerHTML = '<span class="libre">Disponible</span>';
+            }
+            if(canchas){
+                Object.keys(canchas).forEach(key => {
+                    const c = canchas[key]; 
+                    const card = document.getElementById(`card-${key}`);
+                    const txtCancha = document.getElementById(`txt-${key}`);
+                    if(card){
+                        card.classList.add('ocupada');
+                        if(c.confirmado === false) card.classList.add('titilante');
+                        if(c.partido === "TURNO") {
+                            card.classList.add('es-turno');
+                            txtCancha.innerText = c.partido;
+                        } else {
+                            const textoOriginal = c.partido || "";
+                            const partes = textoOriginal.split(/ vs /i);
+                            if(partes.length === 2) {
+                                txtCancha.innerHTML = `
+                                    <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; line-height: 1.1;">
+                                        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">${partes[0].trim()}</div>
+                                        <div style="font-size: 16px; color: #ccff00; opacity: 0.8; margin: 4px 0; font-weight: 900;">VS</div>
+                                        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">${partes[1].trim()}</div>
+                                    </div>
+                                `;
+                            } else { txtCancha.innerText = textoOriginal; }
+                        }
+                    }
+                });
+            }
+        });
+
+        db.ref("torneo/aviso_actual").on("value", (snap) => {
+            const data = snap.val();
+            const overlay = document.getElementById('overlay-aviso');
+            if(data && data.activo && data.partido !== "TURNO"){
+                const texto = data.partido || "";
+                const partes = texto.split(/ vs /i);
+                if(partes.length === 2) {
+                    document.getElementById('aviso-p1').innerText = partes[0].trim();
+                    document.getElementById('aviso-p2').innerText = partes[1].trim();
+                    document.getElementById('aviso-vs').style.display = "block";
+                } else {
+                    document.getElementById('aviso-p1').innerText = texto;
+                    document.getElementById('aviso-p2').innerText = "";
+                    document.getElementById('aviso-vs').style.display = "none";
+                }
+                document.getElementById('aviso-cancha').innerText = "CANCHA " + data.cancha;
+                overlay.style.display = 'flex';
+            } else { overlay.style.display = 'none'; }
+        });
+
+        setInterval(() => {
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
+        }, 1000);
+    </script>
+</body>
+</html>
