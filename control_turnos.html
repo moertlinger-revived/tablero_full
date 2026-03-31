@@ -108,9 +108,108 @@
         db.ref("torneo/aviso_actual").set(info);
     }
 
-    // Nueva función para el botón Mostrar/Ocultar
+    // Nueva función para el botón Mostrar/Ocultar Modificada para tomar segun cancha
     function toggleAviso() {
-        db.ref("torneo/aviso_actual/activo").set(!estadoAvisoActual);
+        <script>
+    let estadoAvisoActual = false;
+
+    // Escuchar el estado del aviso para actualizar el botón automáticamente
+    db.ref("torneo/aviso_actual/activo").on("value", (snap) => {
+        estadoAvisoActual = snap.val();
+        const btn = document.getElementById("btnToggle");
+        if (estadoAvisoActual) {
+            btn.innerText = "Ocultar Aviso Gigante";
+            btn.className = "btn-toggle-aviso aviso-on";
+        } else {
+            btn.innerText = "Mostrar Aviso Gigante";
+            btn.className = "btn-toggle-aviso aviso-off";
+        }
+    });
+
+    async function verificarOcupada(c) {
+        const snap = await db.ref(`torneo/canchas/c${c}`).once('value');
+        return snap.exists();
+    }
+
+    async function prepararAviso() {
+        const c = document.getElementById('numCancha').value;
+        const p1 = document.getElementById('p1').value;
+        const p2 = document.getElementById('p2').value;
+        if(!p1 || !p2) return alert("Ingresa nombres de ambas parejas");
+
+        if(await verificarOcupada(c)) {
+            if(!confirm(`La CANCHA ${c} ya está ocupada. ¿Deseas borrar lo anterior y poner este nuevo partido?`)) return;
+        }
+
+        const info = { 
+            partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, 
+            cancha: c, 
+            activo: true, 
+            confirmado: false 
+        };
+        db.ref(`torneo/canchas/c${c}`).set(info);
+        db.ref("torneo/aviso_actual").set(info);
+    }
+
+    // ESTA ES LA FUNCIÓN MODIFICADA
+    async function toggleAviso() {
+        if (estadoAvisoActual) {
+            // Si ya está encendido, simplemente lo apagamos
+            db.ref("torneo/aviso_actual/activo").set(false);
+        } else {
+            // Si está apagado, buscamos qué hay en la cancha seleccionada
+            const c = document.getElementById('numCancha').value;
+            const snap = await db.ref(`torneo/canchas/c${c}`).once('value');
+            
+            if (snap.exists()) {
+                const datosCancha = snap.val();
+                
+                // Validamos que sea un partido real y no un "TURNO"
+                if (datosCancha.partido === "TURNO") {
+                    alert(`La CANCHA ${c} solo tiene marcado un TURNO. No hay nombres para mostrar.`);
+                    return;
+                }
+                
+                // Si hay un partido, actualizamos el aviso_actual con esos datos y lo activamos
+                db.ref("torneo/aviso_actual").set({
+                    partido: datosCancha.partido,
+                    cancha: datosCancha.cancha,
+                    activo: true,
+                    confirmado: datosCancha.confirmado || false
+                });
+            } else {
+                alert(`La CANCHA ${c} está vacía. No hay nada que mostrar.`);
+            }
+        }
+    }
+
+    async function prepararTurno() {
+        const c = document.getElementById('numCancha').value;
+        if(await verificarOcupada(c)) {
+            if(!confirm(`La CANCHA ${c} tiene datos. ¿Cambiar a TURNO simple?`)) return;
+        }
+        db.ref(`torneo/canchas/c${c}`).set({ partido: "TURNO", cancha: c, confirmado: true });
+        db.ref("torneo/aviso_actual/activo").set(false);
+    }
+
+    function confirmarLargada() {
+        const c = document.getElementById('numCancha').value;
+        db.ref(`torneo/canchas/c${c}/confirmado`).set(true);
+        db.ref("torneo/aviso_actual/activo").set(false);
+    }
+
+    async function vaciarCancha() {
+        const c = document.getElementById('numCancha').value;
+        if(await verificarOcupada(c)) {
+            if(confirm(`🚨 ¿ESTÁS SEGURO?\nVas a vaciar la CANCHA ${c}.`)) {
+                db.ref(`torneo/canchas/c${c}`).remove();
+                db.ref("torneo/aviso_actual/activo").set(false);
+            }
+        } else {
+            alert("La cancha ya está vacía.");
+        }
+    }
+</script>
     }
 
     async function prepararTurno() {
