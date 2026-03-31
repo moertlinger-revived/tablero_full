@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff - Control de Pistas</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="config.js"></script>
+
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 15px; display: flex; justify-content: center; }
         .card { background: #1e1e1e; padding: 25px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
@@ -73,11 +77,8 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="config.js"></script>
-
-        // FUNCIÓN AUXILIAR DE VERIFICACIÓN
+    <script>
+        // Función para verificar si la cancha tiene datos antes de escribir
         async function verificarCanchaOcupada(canchaId) {
             const snapshot = await db.ref(`torneo/canchas/c${canchaId}`).once('value');
             return snapshot.exists();
@@ -93,7 +94,7 @@
 
             const ocupada = await verificarCanchaOcupada(c);
             if (ocupada) {
-                const confirmar = confirm(`La CANCHA ${c} ya está ocupada. ¿Deseas SOBRESCRIBIRLA con el nuevo partido?`);
+                const confirmar = confirm(`ATENCIÓN: La CANCHA ${c} ya tiene un partido asignado. ¿Deseas borrarlo y poner el nuevo?`);
                 if (!confirmar) return;
             }
             ejecutarAviso(c, p1, p2);
@@ -116,7 +117,7 @@
             const ocupada = await verificarCanchaOcupada(c);
             
             if (ocupada) {
-                const confirmar = confirm(`La CANCHA ${c} tiene un partido o turno asignado. ¿Deseas cambiarlo a TURNO simple?`);
+                const confirmar = confirm(`La CANCHA ${c} está siendo usada. ¿Deseas cambiarla a estado de TURNO?`);
                 if (!confirmar) return;
             }
             ejecutarTurno(c);
@@ -131,7 +132,7 @@
             db.ref("torneo/aviso_actual/activo").set(false);
         }
 
-        // RESTO DE FUNCIONES (Sin cambios de lógica pero integradas)
+        // 3. FUNCIONES DE CONTROL DIRECTO
         function ocultarAviso() {
             db.ref("torneo/aviso_actual/activo").set(false);
         }
@@ -143,8 +144,10 @@
 
         function vaciarCancha() {
             const c = document.getElementById('numCancha').value;
-            db.ref(`torneo/canchas/c${c}`).remove();
-            db.ref("torneo/aviso_actual/activo").set(false);
+            if(confirm(`¿Vaciar completamente la CANCHA ${c}?`)) {
+                db.ref(`torneo/canchas/c${c}`).remove();
+                db.ref("torneo/aviso_actual/activo").set(false);
+            }
         }
     </script>
 </body>
