@@ -25,18 +25,31 @@
         .card-indoor { border-left-color: #333; }
         .card-outdoor { border-left-color: #0088ff; background: #050a15; }
 
-        /* ESTADOS DE OCUPACIÓN (PARTIDOS TORNEO) */
+        /* ESTADO OCUPADA */
         .ocupada.card-indoor { border-left-color: #ccff00; background: #1a1a1a; }
         .ocupada.card-outdoor { border-left-color: #0088ff; background: #0a1525; }
 
-        /* ESTILO PARA MODO TURNO (GRIS) */
+        /* ANIMACIÓN TITILANTE (Cuando falta confirmar) */
+        .titilante {
+            animation: parpadeo 1s infinite alternate;
+            border-color: #ccff00 !important;
+            box-shadow: 0 0 20px rgba(204, 255, 0, 0.2);
+        }
+
+        @keyframes parpadeo {
+            from { background: #1a1a1a; }
+            to { background: #333; }
+        }
+
+        /* MODO TURNO (GRIS) */
         .es-turno { 
             border-left-color: #444 !important; 
             background: #0a0a0a !important; 
             opacity: 0.7; 
+            animation: none !important; /* El turno no titila */
         }
         .es-turno .cancha-num { color: #444 !important; }
-        .es-turno .partido-info { color: #888 !important; font-style: italic; letter-spacing: 3px; }
+        .es-turno .partido-info { color: #888 !important; font-style: italic; }
 
         .cancha-num { font-size: 45px; font-weight: 900; margin-right: 30px; color: #333; min-width: 60px; }
         .ocupada .cancha-num { color: #fff; }
@@ -46,7 +59,7 @@
         
         .tag { position: absolute; top: 5px; right: 15px; font-size: 11px; font-weight: bold; color: #444; }
 
-        /* OVERLAY AVISO GIGANTE (SOLO PARA PARTIDOS) */
+        /* AVISO GIGANTE */
         #overlay-aviso {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.98); display: none; flex-direction: column; 
@@ -73,7 +86,7 @@
 
     <div id="overlay-aviso">
         <div class="cartel" id="cartel-aviso">
-            <div style="font-size: 30px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">Llamado a Pista</div>
+            <div style="font-size: 30px; font-weight: 900; text-transform: uppercase;">Llamado a Pista</div>
             <div id="contenedor-nombres" style="margin: 25px 0;">
                 <div id="aviso-p1" class="aviso-pareja">---</div>
                 <div id="aviso-vs" class="aviso-vs">VS</div>
@@ -103,18 +116,27 @@
 
     db.ref("torneo/canchas").on("value", (snap) => {
         const canchas = snap.val();
+        // Resetear canchas
         for(let i=1; i<=8; i++){
             const card = document.getElementById(`card-c${i}`);
-            card.classList.remove('ocupada', 'es-turno');
+            card.classList.remove('ocupada', 'es-turno', 'titilante');
             document.getElementById(`txt-c${i}`).innerHTML = '<span class="libre">Disponible</span>';
         }
+        
         if(canchas){
             Object.keys(canchas).forEach(key => {
                 const c = canchas[key];
                 const card = document.getElementById(`card-${key}`);
                 if(card){
                     card.classList.add('ocupada');
-                    if(c.partido === "TURNO") card.classList.add('es-turno');
+                    
+                    if(c.partido === "TURNO") {
+                        card.classList.add('es-turno');
+                    } else if (!c.confirmado) {
+                        // SI ES UN PARTIDO Y NO HA SIDO CONFIRMADO, TITILA
+                        card.classList.add('titilante');
+                    }
+                    
                     document.getElementById(`txt-${key}`).innerText = c.partido;
                 }
             });
@@ -124,12 +146,9 @@
     db.ref("torneo/aviso_actual").on("value", (snap) => {
         const data = snap.val();
         const overlay = document.getElementById('overlay-aviso');
-        
-        // REGLA: Si el partido es "TURNO", nunca mostrar el aviso gigante
         if(data && data.activo && data.partido !== "TURNO"){
             const texto = data.partido || "";
             const partes = texto.split(/ vs /i);
-            
             if(partes.length === 2) {
                 document.getElementById('aviso-p1').innerText = partes[0].trim();
                 document.getElementById('aviso-p2').innerText = partes[1].trim();
@@ -139,7 +158,6 @@
                 document.getElementById('aviso-p2').innerText = "";
                 document.getElementById('aviso-vs').style.display = "none";
             }
-
             document.getElementById('aviso-cancha').innerText = "CANCHA " + data.cancha;
             overlay.style.display = 'flex';
         } else { 
@@ -147,9 +165,7 @@
         }
     });
 
-    setInterval(() => {
-        document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
-    }, 1000);
+    setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
 </script>
 </body>
 </html>
