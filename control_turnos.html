@@ -29,6 +29,8 @@
         .btn-vaciar { background: #880000; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; }
         
         hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+        
+        textarea { width: 100%; background: #2b2b2b; color: white; border-radius: 10px; padding: 12px; border: 1px solid #333; font-size: 16px; box-sizing: border-box; resize: none; margin-bottom: 10px; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -50,15 +52,15 @@
     <input type="text" id="p2" placeholder="Pareja 2">
     
     <button class="btn-lanzar" onclick="prepararAviso()">Anunciar y Ubicar</button>
-    
     <button id="btnToggle" class="btn-toggle-aviso aviso-off" onclick="toggleAviso()">Mostrar Aviso Gigante</button>
-    
-    <button class="btn-confirmar" onclick="confirmarLargada()">
-        ✅ JUGADORES EN PISTA (OK)
-    </button>
+    <button class="btn-confirmar" onclick="confirmarLargada()">✅ JUGADORES EN PISTA (OK)</button>
 
     <hr>
-    
+    <label>AVISO LIBRE (TEXTO PERSONALIZADO)</label>
+    <textarea id="textoLibre" rows="2" placeholder="Ej: SORTEO EN 5 MINUTOS..."></textarea>
+    <button class="btn-lanzar" style="background:#ffcc00; height: 50px; font-size: 15px;" onclick="lanzarAvisoLibre()">Lanzar Aviso Especial</button>
+
+    <hr>
     <div class="grid-botones">
         <button class="btn-turno" onclick="prepararTurno()">MARCAR TURNO</button>
         <button class="btn-vaciar" onclick="vaciarCancha()">VACIAR PISTA</button>
@@ -68,7 +70,7 @@
 <script>
     let estadoAvisoActual = false;
 
-    // Escuchar el estado del aviso para actualizar el botón automáticamente
+    // Escuchar el estado del aviso actual
     db.ref("torneo/aviso_actual/activo").on("value", (snap) => {
         estadoAvisoActual = snap.val();
         const btn = document.getElementById("btnToggle");
@@ -91,56 +93,45 @@
         const p1 = document.getElementById('p1').value;
         const p2 = document.getElementById('p2').value;
         if(!p1 || !p2) return alert("Ingresa nombres de ambas parejas");
-
         if(await verificarOcupada(c)) {
-            if(!confirm(`La CANCHA ${c} ya está ocupada. ¿Deseas borrar lo anterior y poner este nuevo partido?`)) return;
+            if(!confirm(`La CANCHA ${c} ya está ocupada. ¿Deseas borrar lo anterior?`)) return;
         }
-
-        const info = { 
-            partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, 
-            cancha: c, 
-            activo: true, 
-            confirmado: false 
-        };
+        const info = { partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, cancha: c, activo: true, confirmado: false };
         db.ref(`torneo/canchas/c${c}`).set(info);
         db.ref("torneo/aviso_actual").set(info);
     }
 
-    // FUNCIÓN CORREGIDA: Busca datos en la cancha antes de mostrar
     async function toggleAviso() {
         if (estadoAvisoActual) {
             db.ref("torneo/aviso_actual/activo").set(false);
         } else {
             const c = document.getElementById('numCancha').value;
             const snap = await db.ref(`torneo/canchas/c${c}`).once('value');
-            
             if (snap.exists()) {
                 const datosCancha = snap.val();
-                
-                // Si es solo un turno, no permitir aviso gigante
-                if (datosCancha.partido === "TURNO") {
-                    alert(`La CANCHA ${c} solo tiene marcado un TURNO. No hay nombres para mostrar.`);
-                    return;
-                }
-                
-                // Cargar datos de la cancha al aviso actual
                 db.ref("torneo/aviso_actual").set({
                     partido: datosCancha.partido,
                     cancha: datosCancha.cancha,
                     activo: true,
                     confirmado: datosCancha.confirmado || false
                 });
-            } else {
-                alert(`La CANCHA ${c} está vacía. No hay nada que mostrar.`);
-            }
+            } else { alert(`La CANCHA ${c} está vacía.`); }
         }
+    }
+
+    function lanzarAvisoLibre() {
+        const texto = document.getElementById('textoLibre').value;
+        if(!texto) return alert("Escribe un mensaje primero");
+        db.ref("torneo/aviso_actual").set({
+            partido: texto.toUpperCase(),
+            cancha: "AVISO",
+            activo: true,
+            tipo: "especial"
+        });
     }
 
     async function prepararTurno() {
         const c = document.getElementById('numCancha').value;
-        if(await verificarOcupada(c)) {
-            if(!confirm(`La CANCHA ${c} tiene datos. ¿Cambiar a TURNO simple?`)) return;
-        }
         db.ref(`torneo/canchas/c${c}`).set({ partido: "TURNO", cancha: c, confirmado: true });
         db.ref("torneo/aviso_actual/activo").set(false);
     }
@@ -153,13 +144,9 @@
 
     async function vaciarCancha() {
         const c = document.getElementById('numCancha').value;
-        if(await verificarOcupada(c)) {
-            if(confirm(`🚨 ¿ESTÁS SEGURO?\nVas a vaciar la CANCHA ${c}.`)) {
-                db.ref(`torneo/canchas/c${c}`).remove();
-                db.ref("torneo/aviso_actual/activo").set(false);
-            }
-        } else {
-            alert("La cancha ya está vacía.");
+        if(confirm(`🚨 ¿Vaciar la CANCHA ${c}?`)) {
+            db.ref(`torneo/canchas/c${c}`).remove();
+            db.ref("torneo/aviso_actual/activo").set(false);
         }
     }
 </script>
