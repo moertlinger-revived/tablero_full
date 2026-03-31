@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padel Vivo - Menú Principal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .logo-container h1 {
+            font-size: 50px;
+            font-weight: 900;
+            color: #ccff00;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(204, 255, 0, 0.4);
+        }
+
+        .logo-container p {
+            color: #666;
+            letter-spacing: 8px;
+            margin-top: -5px;
+            font-weight: bold;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            width: 90%;
+            max-width: 900px;
+        }
+
+        .menu-card {
+            background: #111;
+            border: 2px solid #222;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-card:hover {
+            border-color: #ccff00;
+            transform: translateY(-10px);
+            background: #1a1a1a;
+            box-shadow: 0 10px 40px rgba(204, 255, 0, 0.1);
+        }
+
+        .icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .menu-card h2 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            color: #ccff00;
+        }
+
+        .menu-card p {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        /* Estilo para los botones de staff (más pequeños abajo) */
+        .admin-section {
+            margin-top: 60px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .admin-btn {
+            background: #222;
+            color: #aaa;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: 0.2s;
+            border: 1px solid #333;
+        }
+
+        .admin-btn:hover {
+            background: #ccff00;
+            color: #000;
+        }
+
+        @media (max-width: 600px) {
+            .menu-grid { grid-template-columns: 1fr; }
+            .logo-container h1 { font-size: 35px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <h1>PADEL VIVO</h1>
+        <p>SISTEMA DE GESTIÓN</p>
+    </div>
+
+    <div class="menu-grid">
+        <a href="pantalla_puntos.html" class="menu-card">
+            <div class="icon">🎾</div>
+            <h2>Tablero de Puntos</h2>
+            <p>Marcador en tiempo real, Sets, Tiebreak y Punto de Oro.</p>
+        </a>
+
+        <a href="pantalla_turnos.html" class="menu-card">
+            <div class="icon">📅</div>
+            <h2>Tablero de Pistas</h2>
+            <p>Estado de las 8 canchas, turnos y avisos de llamado.</p>
+        </a>
+    </div>
+
+    <div class="admin-section">
+        <a href="control_puntos.html" class="admin-btn">⚙️ CONTROL JUEZ (PUNTOS)</a>
+        <a href="control_turnos.html" class="admin-btn">📋 CONTROL STAFF (PISTAS)</a>
+    </div>
+
+</body>
+</html>
