@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff - Control de Pistas</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="config.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 15px; display: flex; justify-content: center; }
+        .card { background: #1e1e1e; padding: 25px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
+        h2 { color: #ccff00; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        label { display: block; margin-bottom: 5px; color: #aaa; font-size: 14px; font-weight: bold; }
+        select, input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; background: #2b2b2b; color: white; font-size: 16px; box-sizing: border-box; }
+        
+        .btn-lanzar { background: #ccff00; color: black; font-weight: 900; height: 60px; font-size: 18px; border: none; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 10px; }
+        .btn-ocultar { background: #444; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; width: 100%; margin-bottom: 20px; text-transform: uppercase; }
+        
+        .grid-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .btn-turno { background: #555; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; text-transform: uppercase; }
+        .btn-vaciar { background: #ff4444; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; text-transform: uppercase; }
+        
+        .btn-confirmar { 
+            background: #28a745; color: white; font-weight: 900; height: 60px; 
+            font-size: 16px; border: none; border-radius: 12px; cursor: pointer; 
+            width: 100%; text-transform: uppercase; margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+        .opt-group { font-weight: bold; background: #000; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Control de Pistas</h2>
+        
+        <label>SELECCIONAR CANCHA</label>
+        <select id="numCancha">
+            <optgroup label="INDOOR" class="opt-group">
+                <option value="1">CANCHA 1</option>
+                <option value="2">CANCHA 2</option>
+                <option value="3">CANCHA 3</option>
+                <option value="4">CANCHA 4</option>
+                <option value="5">CANCHA 5</option>
+                <option value="6">CANCHA 6</option>
+            </optgroup>
+            <optgroup label="OUTDOOR" class="opt-group">
+                <option value="7">CANCHA 7</option>
+                <option value="8">CANCHA 8</option>
+            </optgroup>
+        </select>
+        
+        <label>PAREJA A</label>
+        <input type="text" id="p1" placeholder="Nombres Pareja 1">
+        <label>PAREJA B</label>
+        <input type="text" id="p2" placeholder="Nombres Pareja 2">
+        
+        <button class="btn-lanzar" onclick="lanzarAviso()">Anunciar y Ubicar</button>
+        <button class="btn-ocultar" onclick="ocultarAviso()">Ocultar Aviso Gigante</button>
+        
+        <button class="btn-confirmar" onclick="confirmarLargada()">
+            ✅ JUGADORES EN PISTA
+        </button>
+
+        <hr>
+        
+        <div class="grid-botones">
+            <button class="btn-turno" onclick="marcarTurno()">Marcar TURNO</button>
+            <button class="btn-vaciar" onclick="vaciarCancha()">Vaciar Pista</button>
+        </div>
+    </div>
+
+    <script>
+        
+        // 1. LANZAR AVISO (Aparece el cartel y empieza a titilar en el fondo)
+        function lanzarAviso() {
+            const c = document.getElementById('numCancha').value;
+            const p1 = document.getElementById('p1').value;
+            const p2 = document.getElementById('p2').value;
+            
+            if(!p1 || !p2) return alert("Por favor, ingresa los nombres de ambas parejas");
+
+            const info = { 
+                partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, 
+                cancha: c, 
+                activo: true, 
+                confirmado: false // Al ser nuevo, NO está confirmado (titila)
+            };
+
+            // Actualiza la cancha y dispara el aviso gigante
+            db.ref(`torneo/canchas/c${c}`).set(info);
+            db.ref("torneo/aviso_actual").set(info);
+        }
+
+        // 2. OCULTAR AVISO GIGANTE (La cancha sigue titilando en la grilla de 8)
+        function ocultarAviso() {
+            db.ref("torneo/aviso_actual/activo").set(false);
+        }
+
+        // 3. CONFIRMAR LARGADA (Deja de titilar y queda color firme)
+        function confirmarLargada() {
+            const c = document.getElementById('numCancha').value;
+            db.ref(`torneo/canchas/c${c}/confirmado`).set(true);
+        }
+
+        // 4. MARCAR COMO TURNO (Color gris, no hace aviso gigante)
+        function marcarTurno() {
+            const c = document.getElementById('numCancha').value;
+            db.ref(`torneo/canchas/c${c}`).set({
+                partido: "TURNO",
+                cancha: c,
+                confirmado: true // Los turnos no necesitan titilar
+            });
+            // Por seguridad ocultamos cualquier aviso previo
+            db.ref("torneo/aviso_actual/activo").set(false);
+        }
+
+        // 5. VACIAR CANCHA
+        function vaciarCancha() {
+            const c = document.getElementById('numCancha').value;
+            db.ref(`torneo/canchas/c${c}`).remove();
+            db.ref("torneo/aviso_actual/activo").set(false);
+        }
+    </script>
+</body>
+</html>
