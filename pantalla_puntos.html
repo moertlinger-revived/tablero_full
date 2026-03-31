@@ -18,153 +18,238 @@
         .title-main { font-size: 20px; font-weight: 900; color: #ccff00; text-transform: uppercase; letter-spacing: 2px; }
         .logo-top { height: 40px; object-fit: contain; }
 
-        .main-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px; }
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 10px 0; }
 
-        /* ZONA DE TIEMPOS PROFESIONAL */
-        .tiempos-container { display: flex; gap: 30px; background: rgba(255,255,255,0.05); padding: 15px 40px; border-radius: 50px; border: 1px solid #333; }
-        .tiempo-item { display: flex; flex-direction: column; align-items: center; }
-        .t-label { font-size: 10px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; }
-        .t-val { font-family: 'Courier New', monospace; font-size: 24px; color: #ccff00; font-weight: bold; }
+        /* HEADER DE ESTADO (Reloj y Avisos) */
+        .header-status { width: 95%; max-width: 1200px; display: flex; align-items: center; margin-bottom: 10px; position: relative; }
 
-        /* TABLERO PRINCIPAL */
-        .scoreboard { width: 95%; max-width: 1200px; display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+        .timer-tv { 
+            background: #111; padding: 5px 25px; border-radius: 8px; border: 1px solid #444; 
+            height: 65px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .t-label { font-size: 11px; color: #aaa; font-weight: 900; text-transform: uppercase; line-height: 1; }
+        .t-val { font-size: 32px; color: #ccff00; font-family: monospace; font-weight: bold; line-height: 1; }
+
+        .estilo-anuncio-amarillo { 
+            background: #ffcc00; color: #000; border-radius: 12px; display: none; align-items: center; 
+            justify-content: center; gap: 20px; height: 75px; padding: 0 45px; border: 4px solid #fff; 
+            margin-left: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 0 20px rgba(255, 204, 0, 0.4); 
+        }
+        .msg-top { font-size: 36px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        .val-descanso { font-size: 48px; font-weight: 900; color: #000; font-family: 'Arial Black', sans-serif; }
+
+        .contenedor-alertas-puntos { position: absolute; right: 0; width: 220px; display: flex; justify-content: center; align-items: center; }
+        #aviso-oro, #aviso-tiebreak-tv { 
+            background: #222; border: 2px solid #444; border-radius: 8px; height: 65px; 
+            display: none; align-items: center; justify-content: center; font-weight: 900; 
+            text-transform: uppercase; box-sizing: border-box; width: 210px;
+        }
+        #aviso-oro { color: #ccff00; font-size: 32px; animation: titilar 0.6s infinite alternate; }
+        #aviso-tiebreak-tv { color: #ff3333; font-size: 22px; }
+
+        @keyframes titilar { from { opacity: 1; } to { opacity: 0.2; } }
+
+        /* SCOREBOARD PRINCIPAL */
+        #scoreboard { width: 95%; max-width: 1200px; background: #050515; border: 5px solid #333; border-radius: 12px; overflow: hidden; position: relative; }
         
-        .equipo-fila { background: #111; display: grid; grid-template-columns: 1fr 100px 100px 100px 200px; align-items: center; border-radius: 15px; overflow: hidden; border: 2px solid #222; margin-bottom: 10px; }
+        .labels-row { display: flex; background: rgba(255,255,255,0.05); font-size: 18px; color: #888; font-weight: bold; border-bottom: 3px solid #333; }
+        .label-equipo { flex-grow: 1; padding: 10px 30px; }
+        .label-box { width: 110px; text-align: center; padding: 10px 0; border-left: 2px solid #333; }
+
+        .equipo-block { display: flex; border-bottom: 10px solid #333; height: 160px; }
+        .equipo-block:last-child { border-bottom: none; }
+
+        .nombres-col { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; background: #020208; gap: 10px; }
+        .name-cell { font-size: 38px; font-weight: 900; text-transform: uppercase; padding-left: 30px; display: flex; align-items: center; gap: 20px; letter-spacing: -1px; }
         
-        .nombres-sector { padding: 20px 30px; display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #222; position: relative; }
-        .j-nombre { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .saque-indicador { position: absolute; left: 10px; color: #ccff00; font-size: 20px; display: none; }
-        .sirviendo .saque-indicador { display: block; }
+        .box { width: 110px; display: flex; justify-content: center; align-items: center; font-size: 75px; font-weight: 900; border-left: 2px solid #333; background: #0a0a0a; }
+        .pts-cell { width: 220px; display: flex; justify-content: center; align-items: center; font-size: 115px; font-weight: 900; background: #c6a052; color: #000; border-left: 5px solid #333; }
+        .pts-cell.modo-tb { background: #111 !important; color: #c6a052 !important; font-size: 95px; }
 
-        .set-box { font-size: 35px; font-weight: 800; text-align: center; color: #666; border-right: 1px solid #222; height: 100%; display: flex; align-items: center; justify-content: center; }
-        .set-actual { color: #fff; background: rgba(204, 255, 0, 0.1); }
-        
-        .puntos-box { font-size: 80px; font-weight: 900; text-align: center; color: #ccff00; background: #000; display: flex; align-items: center; justify-content: center; }
+        .bola { width: 28px; height: 28px; background: #ccff00; border-radius: 50%; box-shadow: 0 0 15px #ccff00; display: none; border: 3px solid #000; margin-left: 15px; }
 
-        /* AVISOS */
-        .aviso-oro { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ccff00; color: #000; padding: 30px 60px; font-size: 50px; font-weight: 900; border-radius: 20px; display: none; z-index: 100; box-shadow: 0 0 100px rgba(204, 255, 0, 0.5); text-transform: uppercase; }
+        /* SPONSORS */
+        .footer-auspiciantes { width: 100%; height: 90px; background: #000; display: flex; justify-content: center; align-items: center; gap: 80px; border-top: 2px solid #222; }
+        .logo-sponsor { max-height: 80px; max-width: 200px; object-fit: contain; }
 
-        #zona-peloteo { transition: opacity 0.5s ease; }
+        #cartel-final { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: none; align-items: center; justify-content: center; border: 20px solid #ccff00; }
     </style>
 </head>
 <body>
 
     <div class="brand-header">
-        <div class="title-main">Padel Vivo - Live Score</div>
-        <img src="https://images.squarespace-cdn.com/content/v1/59232938893fc0c59807577c/1500336040854-C1C9N1P3H6N0C5Q7D7G1/logo-placeholder.png" class="logo-top">
+        <div class="title-main">revived <span style="color:#444">| LIVE SCORE</span></div>
+        <img src="https://lh3.googleusercontent.com/u/0/d/1Sbun1g6OMSdNtM-6arDu5XUxH-NbLwwP" class="logo-top">
     </div>
 
     <div class="main-content">
-        <div class="tiempos-container">
-            <div class="tiempo-item" id="zona-peloteo">
-                <span class="t-label">CALENTAMIENTO</span>
-                <span id="t-peloteo" class="t-val">05:00</span>
+        <div class="header-status">
+            <div class="timer-tv">
+                <span class="t-label" id="timer-title">TIEMPO PARTIDO</span>
+                <span class="t-val" id="val-timer">00:00:00</span>
             </div>
-            <div class="tiempo-item">
-                <span class="t-label">TIEMPO DE PARTIDO</span>
-                <span id="t-partido" class="t-val">00:00:00</span>
+            
+            <div id="aviso-tv-top" class="estilo-anuncio-amarillo">
+                <span class="msg-top" id="msg-tv-desc">CAMBIO DE LADO</span>
+                <span class="val-descanso" id="descanso-tv-q">90</span>
+            </div>
+
+            <div id="aviso-final-top" class="estilo-anuncio-amarillo">
+                <span class="msg-top">PARTIDO FINALIZADO</span>
+            </div>
+
+            <div class="contenedor-alertas-puntos">
+                <div id="aviso-tiebreak-tv">TIE-BREAK</div>
+                <div id="aviso-oro">ORO</div>
             </div>
         </div>
 
-        <div class="scoreboard">
-            <div class="tablero-datos">
-                <div class="equipo-fila" id="eq0">
-                    <div class="nombres-sector">
-                        <span class="saque-indicador">●</span>
-                        <span class="j-nombre" id="n0">JUGADOR 1A</span>
-                        <span class="j-nombre" id="n1">JUGADOR 1B</span>
-                    </div>
-                    <div class="set-box" id="s1-0">0</div>
-                    <div class="set-box" id="s2-0">0</div>
-                    <div class="set-box" id="s3-0">0</div>
-                    <div class="puntos-box" id="pA">0</div>
+        <div id="scoreboard">
+            <div id="cartel-final"><div style="font-size: 100px; font-weight: 900; color: #ccff00; text-align: center;">PARTIDO<br>FINALIZADO</div></div>
+            
+            <div class="labels-row">
+                <div class="label-equipo">JUGADORES</div>
+                <div class="label-box">SET 1</div>
+                <div class="label-box">SET 2</div>
+                <div class="label-box">SET 3</div>
+                <div class="label-box" style="width:220px; color:#c6a052;">PUNTOS</div>
+            </div>
+            
+            <div class="equipo-block">
+                <div class="nombres-col">
+                    <div class="name-cell"><span id="n0">EQUIPO 1A</span><div id="b0" class="bola"></div></div>
+                    <div class="name-cell"><span id="n1">EQUIPO 1B</span><div id="b1" class="bola"></div></div>
                 </div>
+                <div class="box" id="s1-0">0</div><div class="box" id="s2-0">0</div><div class="box" id="s3-0">0</div><div class="pts-cell" id="pA">0</div>
+            </div>
 
-                <div class="equipo-fila" id="eq1">
-                    <div class="nombres-sector">
-                        <span class="saque-indicador">●</span>
-                        <span class="j-nombre" id="n2">JUGADOR 2A</span>
-                        <span class="j-nombre" id="n3">JUGADOR 2B</span>
-                    </div>
-                    <div class="set-box" id="s1-1">0</div>
-                    <div class="set-box" id="s2-1">0</div>
-                    <div class="set-box" id="s3-1">0</div>
-                    <div class="puntos-box" id="pB">0</div>
+            <div class="equipo-block">
+                <div class="nombres-col">
+                    <div class="name-cell"><span id="n2">EQUIPO 2A</span><div id="b2" class="bola"></div></div>
+                    <div class="name-cell"><span id="n3">EQUIPO 2B</span><div id="b3" class="bola"></div></div>
                 </div>
+                <div class="box" id="s1-1">0</div><div class="box" id="s2-1">0</div><div class="box" id="s3-1">0</div><div class="pts-cell" id="pB">0</div>
             </div>
         </div>
     </div>
 
-    <div id="aviso-oro" class="aviso-oro">Punto de Oro</div>
 
-    <script>
-        let tiebreakActivo = false;
+    
+    <div class="footer-auspiciantes">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1Q2krrcRKeNX8LeYFBKStBB8-mZAJ7-VP" class="logo-sponsor">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1CPn9kIDEj5lRpJcu2z1f--cKy3VN0X7Q" class="logo-sponsor">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1SzAQiKyloNwnmn_BnLQaO6p_eJSNjn8y" class="logo-sponsor">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1oisKHgPkNW1loGoAal74E8QCfiK2f6qp" class="logo-sponsor">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1MQ6tkM9c4UOamincvrZ3gREkyscX5C42" class="logo-sponsor">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1GIRiY5M1SjeCy-X4OQ-KznE7dNg6tDOw" class="logo-sponsor">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1aqgOJTjyUprGk_-CuwcMoV7JcLq_o39z" class="logo-sponsor">
+        
+    </div>
 
-        db.ref("marcador/actual").on("value", (snap) => {
-            const data = snap.val();
-            if(!data) return;
+<script>
+    
+    let tiebreakActivo = false;
+    let partidoFinalizadoGlobal = false;
+    
+    // Variables locales para cálculo independiente del tiempo
+    let localRunP = false;
+    let localSTP = 0;
+    let localACP = 0;
+
+    // Reloj interno del Display: corre siempre comparando el tiempo actual con el de inicio enviado por el juez
+    setInterval(() => {
+        if(localRunP && localSTP > 0) {
+            let actualSeg = Math.floor((Date.now() - localSTP) / 1000);
             
-            // Sincronización de Nombres
-            document.getElementById('n0').innerText = data.n0 || "J1A";
-            document.getElementById('n1').innerText = data.n1 || "J1B";
-            document.getElementById('n2').innerText = data.n2 || "J2A";
-            document.getElementById('n3').innerText = data.n3 || "J2B";
-
-            // Sincronización de Puntos y Sets
-            document.getElementById('pA').innerText = data.p0 || "0";
-            document.getElementById('pB').innerText = data.p1 || "0";
-            
-            tiebreakActivo = data.tb || false;
-
-            // Historial de Sets
-            [0, 1, 2].forEach(i => {
-                document.getElementById(`s${i+1}-0`).innerText = (data.h0 && data.h0[i] !== undefined) ? data.h0[i] : 0;
-                document.getElementById(`s${i+1}-1`).innerText = (data.h1 && data.h1[i] !== undefined) ? data.h1[i] : 0;
-                
-                // Resaltar set actual
-                document.getElementById(`s${i+1}-0`).classList.toggle('set-actual', data.set === i);
-                document.getElementById(`s${i+1}-1`).classList.toggle('set-actual', data.set === i);
-            });
-
-            // Indicador de Saque
-            document.getElementById('eq0').classList.toggle('sirviendo', data.saqueIdx === 0 || data.saqueIdx === 1);
-            document.getElementById('eq1').classList.toggle('sirviendo', data.saqueIdx === 2 || data.saqueIdx === 3);
-
-            // Aviso Punto de Oro
-            const avisoOro = document.getElementById('aviso-oro');
-            if(data.oro && (data.p0 === "40" && data.p1 === "40")) {
-                avisoOro.style.display = 'flex';
-            } else {
-                avisoOro.style.display = 'none';
+            if(document.getElementById('timer-title').innerText === "TIEMPO PARTIDO") {
+                let h=Math.floor(actualSeg/3600).toString().padStart(2,'0'), 
+                    m=Math.floor((actualSeg%3600)/60).toString().padStart(2,'0'), 
+                    s=(actualSeg%60).toString().padStart(2,'0');
+                document.getElementById('val-timer').innerText = `${h}:${m}:${s}`;
             }
-
-            // LÓGICA DE VISIBILIDAD DEL PELOTEO (TU PETICIÓN)
-            const zonaPeloteo = document.getElementById('zona-peloteo');
-            if (data.visPeloteo === false) {
-                zonaPeloteo.style.opacity = "0";
-                setTimeout(() => { zonaPeloteo.style.visibility = "hidden"; }, 500);
-            } else {
-                zonaPeloteo.style.visibility = "visible";
-                zonaPeloteo.style.opacity = "1";
-            }
-
-            // Sincronización de Relojes desde DB
-            if (data.tiempos) {
-                actualizarRelojes(data.tiempos.partido || 0, data.tiempos.peloteo || 0);
-            }
-        });
-
-        function actualizarRelojes(segP, segPel) {
-            // Reloj Partido
-            let h = Math.floor(segP / 3600), m = Math.floor((segP % 3600) / 60), s = segP % 60;
-            document.getElementById('t-partido').innerText = 
-                `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            
-            // Reloj Peloteo
-            let mp = Math.floor(segPel / 60), sp = segPel % 60;
-            document.getElementById('t-peloteo').innerText = 
-                `${mp.toString().padStart(2,'0')}:${sp.toString().padStart(2,'0')}`;
         }
-    </script>
+    }, 1000);
+
+    function updateTiempos(t) {
+        if(!t) return;
+        
+        // Sincronización de flags de tiempo real
+        localRunP = t.runP;
+        localSTP = t.sTP;
+        localACP = t.acP;
+
+        if(t.vPel) {
+            document.getElementById('val-timer').innerText = t.tPel;
+            document.getElementById('timer-title').innerText = "CALENTAMIENTO";
+        } else {
+            document.getElementById('timer-title').innerText = "TIEMPO PARTIDO";
+            // Si el cronómetro no está corriendo (pausado), mostramos el valor estático
+            if(!localRunP) document.getElementById('val-timer').innerText = t.tPar;
+        }
+        
+        const avisoTopCambio = document.getElementById('aviso-tv-top');
+        const avisoFinalTop = document.getElementById('aviso-final-top');
+        const cartelGigante = document.getElementById('cartel-final');
+        const avisoTb = document.getElementById('aviso-tiebreak-tv');
+
+        tiebreakActivo = t.tiebreak;
+        partidoFinalizadoGlobal = t.modoFinal || t.finalizado;
+
+        if(t.cartelGigante) {
+            cartelGigante.style.display = 'flex';
+            avisoFinalTop.style.display = 'none';
+            avisoTopCambio.style.display = 'none';
+            avisoTb.style.display = 'none';
+        } else {
+            cartelGigante.style.display = 'none';
+            if(partidoFinalizadoGlobal) {
+                avisoFinalTop.style.display = 'flex';
+                avisoTopCambio.style.display = 'none';
+                avisoTb.style.display = 'none';
+            } else {
+                avisoFinalTop.style.display = 'none';
+                if(t.vDesc && t.tDesc > 0) { 
+                    avisoTopCambio.style.display = 'flex'; 
+                    document.getElementById('descanso-tv-q').innerText = t.tDesc; 
+                } else { 
+                    avisoTopCambio.style.display = 'none'; 
+                }
+                if(tiebreakActivo) {
+                    avisoTb.style.display = 'flex';
+                    avisoTb.innerText = t.esSTB ? "SUPER TIE-BREAK" : "TIE-BREAK";
+                } else {
+                    avisoTb.style.display = 'none';
+                }
+            }
+        }
+
+        document.getElementById('pA').classList.toggle('modo-tb', tiebreakActivo);
+        document.getElementById('pB').classList.toggle('modo-tb', tiebreakActivo);
+    }
+
+    function updateActual(d) {
+        if(!d) return;
+        document.getElementById('n0').innerText=d.n0; document.getElementById('n1').innerText=d.n1;
+        document.getElementById('n2').innerText=d.n2; document.getElementById('n3').innerText=d.n3;
+        document.getElementById('pA').innerText=d.p0; document.getElementById('pB').innerText=d.p1;
+        document.getElementById('msg-tv-desc').innerText = d.msg;
+        
+        const avisoOro = document.getElementById('aviso-oro');
+        if(d.oro && !tiebreakActivo && !partidoFinalizadoGlobal) {
+            avisoOro.style.display = 'flex';
+        } else {
+            avisoOro.style.display = 'none';
+        }
+
+        [0,1,2].forEach(i => { 
+            document.getElementById(`s${i+1}-0`).innerText = d.h0[i]; 
+            document.getElementById(`s${i+1}-1`).innerText = d.h1[i]; 
+        });
+        for(let i=0; i<4; i++) document.getElementById(`b${i}`).style.display = (d.sIdx===i) ? 'block' : 'none';
+    }
+
+    db.ref("marcador/tiempos").on("value", (snap) => updateTiempos(snap.val()));
+    db.ref("marcador/actual").on("value", (snap) => updateActual(snap.val()));
+</script>
 </body>
 </html>
