@@ -10,14 +10,15 @@
 
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: sans-serif; background: #000; color: #fff; margin: 0; padding: 5px; text-align: center; padding-top: 30px; }
+        body { font-family: sans-serif; background: #000; color: #fff; margin: 0; padding: 5px; text-align: center; padding-top: 30px; /* Espacio para la barra superior */ }
         
+        /* Ajuste para que la versión sea visible */
         .version-tag { 
             position: fixed; 
             top: 5px; 
             left: 5px; 
             font-size: 10px; 
-            color: #aaa; 
+            color: #aaa; /* Color más suave para no distraer */
             font-weight: bold; 
             z-index: 9999;
             background: rgba(0,0,0,0.5);
@@ -25,35 +26,174 @@
             border-radius: 4px;
         }
 
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; }
-        .logo { color: #ccff00; font-weight: 900; font-size: 20px; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
 
-        .score-container { display: flex; justify-content: space-around; align-items: center; background: #111; padding: 20px 10px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #222; }
-        .team-box { flex: 1; }
-        .points { font-size: 80px; font-weight: 900; margin: 10px 0; line-height: 1; }
-        .team-name { font-size: 14px; color: #888; font-weight: bold; text-transform: uppercase; }
-        
-        .btn-punto { width: 100%; height: 120px; border: none; border-radius: 12px; font-size: 24px; font-weight: 900; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; color: #000; }
+        .logo {
+            color: #ccff00;
+            font-weight: 900;
+            font-size: 20px;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #111;
+            padding: 20px 10px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #222;
+        }
+
+        .team-box {
+            flex: 1;
+        }
+
+        .points {
+            font-size: 80px;
+            font-weight: 900;
+            margin: 10px 0;
+            line-height: 1;
+        }
+
+        .team-name {
+            font-size: 14px;
+            color: #888;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Botonera de puntos */
+        .btn-punto {
+            width: 100%;
+            height: 120px;
+            border: none;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
         .btn-a { background: #ccff00; }
         .btn-b { background: #ccff00; }
 
-        .sets-display { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; background: #1a1a1a; padding: 15px; border-radius: 10px; }
-        .set-col { text-align: center; }
-        .set-label { font-size: 10px; color: #666; margin-bottom: 5px; }
-        .set-score { font-size: 28px; font-weight: bold; color: #fff; background: #000; padding: 5px 12px; border-radius: 5px; border: 1px solid #333; }
-        .set-score.actual { border-color: #ccff00; color: #ccff00; }
+        .sets-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 10px;
+        }
 
-        .players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .player-card { background: #111; padding: 15px; border-radius: 10px; border: 2px solid transparent; position: relative; }
-        .player-card.sirviendo { border-color: #ccff00; background: #1a1a1a; }
-        .player-card.sirviendo::after { content: "🎾"; position: absolute; top: 5px; right: 5px; font-size: 12px; }
-        .player-name { font-size: 14px; font-weight: bold; margin-bottom: 5px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
-        .controls-footer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-        .btn-footer { background: #222; border: 1px solid #333; color: #fff; padding: 12px 5px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-footer.activo { background: #ccff00; color: #000; border-color: #ccff00; }
-        .btn-undo { background: #440000; color: #ffaaaa; }
-        .btn-reset { background: #444; }
+        .set-col {
+            text-align: center;
+        }
+
+        .set-label {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .set-score {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            background: #000;
+            padding: 5px 12px;
+            border-radius: 5px;
+            border: 1px solid #333;
+        }
+
+        .set-score.actual {
+            border-color: #ccff00;
+            color: #ccff00;
+        }
+
+        /* Jugadores y Saque */
+        .players-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .player-card {
+            background: #111;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .player-card.sirviendo {
+            border-color: #ccff00;
+            background: #1a1a1a;
+        }
+
+        .player-card.sirviendo::after {
+            content: "🎾";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+        }
+
+        .player-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Controles Inferiores */
+        .controls-footer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-footer {
+            background: #222;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px 5px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-footer.activo {
+            background: #ccff00;
+            color: #000;
+            border-color: #ccff00;
+        }
+
+        .btn-undo {
+            background: #440000;
+            color: #ffaaaa;
+        }
+
+        .btn-reset {
+            background: #444;
+        }
     </style>
 </head>
 <body>
@@ -123,26 +263,41 @@
     </div>
 
 <script>
+    // Variables de estado
     let pts = [0, 0];
     let juegos = [0, 0];
     let sets = [0, 0];
-    let historialSets = [[0,0,0], [0,0,0]];
-    let modo = "NORMAL";
+    let historialSets = [[0, 0, 0], [0, 0, 0]];
+    let modo = "NORMAL"; // NORMAL o TIEBREAK
     let limiteTB = 7;
-    let modoSTB = 0; // 0:Normal, 1:10, 2:11
+    let modoSTB = 0; // 0:Normal, 1:SuperTB(10), 2:SuperTB(11)
     let puntoOroActivo = true;
-    let saqueJugadorIdx = 0;
+    let saqueJugadorIdx = 0; // 0 o 2 para Equipo A, 1 o 3 para Equipo B
+    
+    // Historial para deshacer
     let stack = [];
 
     function guardarEstado() {
-        stack.push(JSON.stringify({ pts:[...pts], juegos:[...juegos], sets:[...sets], h:[...historialSets.map(a=>[...a])], m:modo, s:saqueJugadorIdx }));
+        stack.push(JSON.stringify({
+            pts: [...pts],
+            juegos: [...juegos],
+            sets: [...sets],
+            h: [ [...historialSets[0]], [...historialSets[1]] ],
+            m: modo,
+            s: saqueJugadorIdx
+        }));
         if(stack.length > 10) stack.shift();
     }
 
     function deshacer() {
         if(stack.length === 0) return;
         const e = JSON.parse(stack.pop());
-        pts = e.pts; juegos = e.juegos; sets = e.sets; historialSets = e.h; modo = e.m; saqueJugadorIdx = e.s;
+        pts = e.pts;
+        juegos = e.juegos;
+        sets = e.sets;
+        historialSets = e.h;
+        modo = e.m;
+        saqueJugadorIdx = e.s;
         render();
     }
 
@@ -169,26 +324,27 @@
     function ganarPunto(i) {
         guardarEstado();
         pts[i]++;
-        const totalPuntos = pts[0] + pts[1];
+        const totalPuntosTB = pts[0] + pts[1];
 
         if (modo === "TIEBREAK") {
             // LÓGICA DE SAQUE TIE-BREAK (1-2-2-2)
-            // El primer saque es 1 punto (total 0). Luego cambia cada 2 puntos.
-            // El cambio ocurre cuando el total acumulado es IMPAR (1, 3, 5, 7...)
-            if (totalPuntos % 2 !== 0) {
+            // El primer jugador saca 1 vez (punto 0). 
+            // Luego el saque cambia cada vez que el total de puntos es IMPAR (1, 3, 5, 7...).
+            if (totalPuntosTB % 2 !== 0) {
                 saqueJugadorIdx = (saqueJugadorIdx + 1) % 4;
             }
 
-            if (pts[i] >= limiteTB && (pts[i] - pts[1 - i] >= 2)) {
+            // Verificar fin de Tie-break
+            if (pts[i] >= limiteTB && (pts[i] - pts[1-i] >= 2)) {
                 sets[i]++;
                 finalizarSet(i);
             }
         } else {
-            // LÓGICA MODO NORMAL
-            if (pts[i] >= 4 && (pts[i] - pts[1 - i] >= 2 || (puntoOroActivo && pts[i] === 4 && pts[1 - i] === 3))) {
+            // MODO NORMAL (0, 15, 30, 40, Oro/Ad)
+            if (pts[i] >= 4 && (pts[i] - pts[1-i] >= 2 || (puntoOroActivo && pts[i] === 4 && pts[1-i] === 3))) {
                 juegos[i]++;
                 pts = [0, 0];
-                // En juego normal el saque cambia al terminar el game
+                // En modo normal el saque cambia siempre al finalizar el game
                 saqueJugadorIdx = (saqueJugadorIdx + 1) % 4;
                 verificarSet(i);
             }
@@ -197,14 +353,18 @@
     }
 
     function verificarSet(i) {
-        const jA = juegos[0], jB = juegos[1];
+        const jA = juegos[0];
+        const jB = juegos[1];
+
         if (jA === 6 && jB === 6) {
             modo = "TIEBREAK";
             pts = [0, 0];
         } else if ((jA >= 6 && jA - jB >= 2) || jA === 7) {
-            sets[0]++; finalizarSet(0);
+            sets[0]++;
+            finalizarSet(0);
         } else if ((jB >= 6 && jB - jA >= 2) || jB === 7) {
-            sets[1]++; finalizarSet(1);
+            sets[1]++;
+            finalizarSet(1);
         }
     }
 
@@ -214,11 +374,13 @@
         historialSets[1][setActualIdx] = juegos[1];
         
         if (sets[0] === 2 || sets[1] === 2) {
-            alert("PARTIDO FINALIZADO");
+            // alert("PARTIDO FINALIZADO");
         } else {
             juegos = [0, 0];
             pts = [0, 0];
             modo = "NORMAL";
+
+            // Si es empate 1-1 y hay modo SuperTiebreak activado
             if (sets[0] + sets[1] === 2 && modoSTB > 0) {
                 modo = "TIEBREAK";
                 limiteTB = (modoSTB === 1) ? 10 : 11;
@@ -228,15 +390,23 @@
 
     function resetTotal() {
         if(confirm("¿REINICIAR TODO EL PARTIDO?")) {
-            pts=[0,0]; juegos=[0,0]; sets=[0,0]; historialSets=[[0,0,0],[0,0,0]]; modo="NORMAL"; stack=[]; render();
+            pts = [0, 0];
+            juegos = [0, 0];
+            sets = [0, 0];
+            historialSets = [[0, 0, 0], [0, 0, 0]];
+            modo = "NORMAL";
+            stack = [];
+            render();
         }
     }
 
     function render() {
-        const l = ["0","15","30","40","Ad"];
-        document.getElementById('pA').innerText = modo==="NORMAL" ? l[pts[0]] : pts[0];
-        document.getElementById('pB').innerText = modo==="NORMAL" ? l[pts[1]] : pts[1];
+        // Puntos visuales
+        const l = ["0", "15", "30", "40", "Ad"];
+        document.getElementById('pA').innerText = modo === "NORMAL" ? l[pts[0]] : pts[0];
+        document.getElementById('pB').innerText = modo === "NORMAL" ? l[pts[1]] : pts[1];
         
+        // Historial
         document.getElementById('s1-0').innerText = historialSets[0][0];
         document.getElementById('s1-1').innerText = historialSets[1][0];
         document.getElementById('s2-0').innerText = historialSets[0][1];
@@ -244,14 +414,20 @@
         document.getElementById('s3-0').innerText = historialSets[0][2];
         document.getElementById('s3-1').innerText = historialSets[1][2];
 
+        // Botonera
         document.getElementById('btn-regla').innerText = `TB: ${limiteTB}-${limiteTB}`;
+        document.getElementById('btn-regla').classList.toggle('activo', limiteTB === 5);
         document.getElementById('btn-stb').innerText = "3er SET: " + (modoSTB===0?"NORMAL":modoSTB===1?"STB(10)":"STB(11)");
+        document.getElementById('btn-stb').classList.toggle('activo', modoSTB > 0);
         document.getElementById('btn-oro').innerText = "ORO: " + (puntoOroActivo?"SÍ":"NO");
+        document.getElementById('btn-oro').classList.toggle('activo', puntoOroActivo);
 
+        // Saque
         for(let i=0; i<4; i++) {
-            document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx===i);
+            document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx === i);
         }
 
+        // Firebase Sync
         db.ref("marcador/actual").set({
             n0: document.getElementById('n0').innerText,
             n1: document.getElementById('n1').innerText,
@@ -271,6 +447,7 @@
         el.addEventListener('input', render);
     });
 
+    // Inicio
     render();
 </script>
 </body>
