@@ -399,11 +399,18 @@
 
     function render() {
         const l = ["0","15","30","40","Ad"];
+        
+        // Puntos limpios para enviar a Firebase
+        let pA_clean = modo==="NORMAL" ? l[pts[0]] : pts[0];
+        let pB_clean = modo==="NORMAL" ? l[pts[1]] : pts[1];
+        
+        // Games actuales (solo para visualización del Juez)
         const gA = historialSets[0][setActualIdx];
         const gB = historialSets[1][setActualIdx];
         
-        document.getElementById('pA').innerText = (modo==="NORMAL" ? l[pts[0]] : pts[0]) + " (" + gA + ")";
-        document.getElementById('pB').innerText = (modo==="NORMAL" ? l[pts[1]] : pts[1]) + " (" + gB + ")";
+        // Actualizar pantalla del Juez con Games entre paréntesis
+        document.getElementById('pA').innerText = pA_clean + " (" + gA + ")";
+        document.getElementById('pB').innerText = pB_clean + " (" + gB + ")";
         
         document.getElementById('btn-regla').innerText = `TB: ${limiteTB}-${limiteTB}`;
         document.getElementById('btn-regla').classList.toggle('activo', limiteTB === 5);
@@ -411,8 +418,25 @@
         document.getElementById('btn-stb').classList.toggle('activo', modoSTB>0);
         document.getElementById('btn-oro').innerText = "ORO: " + (puntoOroActivo?"SÍ":"NO");
         document.getElementById('btn-oro').classList.toggle('activo', puntoOroActivo);
+        
         for(let i=0; i<4; i++) document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx===i); 
-        db.ref("marcador/actual").set({ n0:document.getElementById('n0').innerText, n1:document.getElementById('n1').innerText, n2:document.getElementById('n2').innerText, n3:document.getElementById('n3').innerText, h0:historialSets[0], h1:historialSets[1], p0:document.getElementById('pA').innerText, p1:document.getElementById('pB').innerText, sIdx:saqueJugadorIdx, modo:modo, oro:(puntoOroActivo && pts[0]===3 && pts[1]===3), finalizado:finalizado, msg:document.getElementById('msg-descanso').innerText });
+
+        // CRÍTICO: Enviar a Firebase solo los puntos limpios
+        db.ref("marcador/actual").set({ 
+            n0: document.getElementById('n0').innerText, 
+            n1: document.getElementById('n1').innerText, 
+            n2: document.getElementById('n2').innerText, 
+            n3: document.getElementById('n3').innerText, 
+            h0: historialSets[0], 
+            h1: historialSets[1], 
+            p0: pA_clean, 
+            p1: pB_clean, 
+            sIdx: saqueJugadorIdx, 
+            modo: modo, 
+            oro: (puntoOroActivo && pts[0]===3 && pts[1]===3), 
+            finalizado: finalizado, 
+            msg: document.getElementById('msg-descanso').innerText 
+        });
     }
 </script>
 </body>
