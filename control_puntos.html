@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JUEZ PADEL CONTROL - V50.1 beta</title>
+    <title>JUEZ PADEL CONTROL - V49.2 stable</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="config.js"></script>
@@ -328,23 +328,19 @@
 
         if (modo === "TIEBREAK") {
             // LÓGICA DE SAQUE TIE-BREAK (1-2-2-2)
-            // El primer jugador saca 1 vez (punto 0). 
-            // Luego el saque cambia cada vez que el total de puntos es IMPAR (1, 3, 5, 7...).
+            // Cambia el saque cuando el total de puntos acumulados es IMPAR (1, 3, 5, 7...)
             if (totalPuntosTB % 2 !== 0) {
                 saqueJugadorIdx = (saqueJugadorIdx + 1) % 4;
             }
 
-            // Verificar fin de Tie-break
             if (pts[i] >= limiteTB && (pts[i] - pts[1-i] >= 2)) {
                 sets[i]++;
                 finalizarSet(i);
             }
         } else {
-            // MODO NORMAL (0, 15, 30, 40, Oro/Ad)
             if (pts[i] >= 4 && (pts[i] - pts[1-i] >= 2 || (puntoOroActivo && pts[i] === 4 && pts[1-i] === 3))) {
                 juegos[i]++;
                 pts = [0, 0];
-                // En modo normal el saque cambia siempre al finalizar el game
                 saqueJugadorIdx = (saqueJugadorIdx + 1) % 4;
                 verificarSet(i);
             }
@@ -374,13 +370,11 @@
         historialSets[1][setActualIdx] = juegos[1];
         
         if (sets[0] === 2 || sets[1] === 2) {
-            // alert("PARTIDO FINALIZADO");
+            // Fin partido
         } else {
             juegos = [0, 0];
             pts = [0, 0];
             modo = "NORMAL";
-
-            // Si es empate 1-1 y hay modo SuperTiebreak activado
             if (sets[0] + sets[1] === 2 && modoSTB > 0) {
                 modo = "TIEBREAK";
                 limiteTB = (modoSTB === 1) ? 10 : 11;
@@ -390,23 +384,17 @@
 
     function resetTotal() {
         if(confirm("¿REINICIAR TODO EL PARTIDO?")) {
-            pts = [0, 0];
-            juegos = [0, 0];
-            sets = [0, 0];
+            pts = [0, 0]; juegos = [0, 0]; sets = [0, 0];
             historialSets = [[0, 0, 0], [0, 0, 0]];
-            modo = "NORMAL";
-            stack = [];
-            render();
+            modo = "NORMAL"; stack = []; render();
         }
     }
 
     function render() {
-        // Puntos visuales
         const l = ["0", "15", "30", "40", "Ad"];
         document.getElementById('pA').innerText = modo === "NORMAL" ? l[pts[0]] : pts[0];
         document.getElementById('pB').innerText = modo === "NORMAL" ? l[pts[1]] : pts[1];
         
-        // Historial
         document.getElementById('s1-0').innerText = historialSets[0][0];
         document.getElementById('s1-1').innerText = historialSets[1][0];
         document.getElementById('s2-0').innerText = historialSets[0][1];
@@ -414,7 +402,6 @@
         document.getElementById('s3-0').innerText = historialSets[0][2];
         document.getElementById('s3-1').innerText = historialSets[1][2];
 
-        // Botonera
         document.getElementById('btn-regla').innerText = `TB: ${limiteTB}-${limiteTB}`;
         document.getElementById('btn-regla').classList.toggle('activo', limiteTB === 5);
         document.getElementById('btn-stb').innerText = "3er SET: " + (modoSTB===0?"NORMAL":modoSTB===1?"STB(10)":"STB(11)");
@@ -422,12 +409,8 @@
         document.getElementById('btn-oro').innerText = "ORO: " + (puntoOroActivo?"SÍ":"NO");
         document.getElementById('btn-oro').classList.toggle('activo', puntoOroActivo);
 
-        // Saque
-        for(let i=0; i<4; i++) {
-            document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx === i);
-        }
+        for(let i=0; i<4; i++) document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx === i);
 
-        // Firebase Sync
         db.ref("marcador/actual").set({
             n0: document.getElementById('n0').innerText,
             n1: document.getElementById('n1').innerText,
@@ -442,12 +425,10 @@
         });
     }
 
-    // Auto-save nombres al editar
     document.querySelectorAll('.player-name').forEach(el => {
         el.addEventListener('input', render);
     });
 
-    // Inicio
     render();
 </script>
 </body>
