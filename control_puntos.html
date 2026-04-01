@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JUEZ PADEL CONTROL - V50.1 beta</title>
+    <title>JUEZ PADEL CONTROL - V49.2 stable</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="config.js"></script>
@@ -155,7 +155,7 @@
         
         .puntos-display { 
             font-family: 'Impact', sans-serif;
-            font-size: 70px; 
+            font-size: 45px; 
             font-weight: 900; 
             color: #ccff00; 
             margin: 10px 0; 
@@ -205,7 +205,7 @@
     </style>
 </head>
 <body onload="cargarLocal()">
-    <div class="version-tag">CONTROL TABLERO REVIVED (VER. 50.1 beta)</div>
+    <div class="version-tag">CONTROL TABLERO REVIVED (VER. 49.2 stable)</div>
 
     <img src="https://lh3.googleusercontent.com/u/0/d/1Sbun1g6OMSdNtM-6arDu5XUxH-NbLwwP" class="brand-logo">
     
@@ -399,8 +399,12 @@
 
     function render() {
         const l = ["0","15","30","40","Ad"];
-        document.getElementById('pA').innerText = modo==="NORMAL" ? l[pts[0]] : pts[0];
-        document.getElementById('pB').innerText = modo==="NORMAL" ? l[pts[1]] : pts[1];
+        const gA = historialSets[0][setActualIdx];
+        const gB = historialSets[1][setActualIdx];
+        
+        document.getElementById('pA').innerText = (modo==="NORMAL" ? l[pts[0]] : pts[0]) + " (" + gA + ")";
+        document.getElementById('pB').innerText = (modo==="NORMAL" ? l[pts[1]] : pts[1]) + " (" + gB + ")";
+        
         document.getElementById('btn-regla').innerText = `TB: ${limiteTB}-${limiteTB}`;
         document.getElementById('btn-regla').classList.toggle('activo', limiteTB === 5);
         document.getElementById('btn-stb').innerText = "3er SET: " + (modoSTB===0?"NORMAL":modoSTB===1?"STB(10)":"STB(11)");
