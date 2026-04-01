@@ -14,132 +14,52 @@
         .card { background: #1e1e1e; padding: 25px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
         h2 { color: #ccff00; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
         label { display: block; margin-bottom: 5px; color: #aaa; font-size: 14px; font-weight: bold; }
-        select, input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; background: #2b2b2b; color: white; font-size: 16px; box-sizing: border-box; }
-        
-        /* Estilo para el contenedor del input y el botón de borrar */
-        .input-group { position: relative; display: flex; align-items: center; }
-        .input-group input { padding-right: 45px; } /* Espacio para que el texto no tape el botón */
-        .btn-clear { 
-            position: absolute; right: 10px; top: 12px;
-            background: #444; color: white; border: none; 
-            width: 30px; height: 30px; border-radius: 50%; 
-            cursor: pointer; font-weight: bold; display: flex; 
-            align-items: center; justify-content: center;
-        }
-        .btn-clear:hover { background: #666; }
-
-        .btn-lanzar { background: #ccff00; color: black; font-weight: 900; height: 60px; font-size: 18px; border: none; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 10px; }
-        
-        .btn-toggle-aviso { font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 20px; transition: 0.3s; }
-        .aviso-off { background: #444; color: white; }
-        .aviso-on { background: #ff4444; color: white; box-shadow: 0 0 15px rgba(255, 68, 68, 0.4); }
-
-        .btn-confirmar { background: #28a745; color: white; font-weight: 900; height: 60px; border: none; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 10px; }
-        
-        .grid-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn-turno { background: #444; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; }
-        .btn-vaciar { background: #880000; color: white; font-weight: bold; height: 50px; border: none; border-radius: 10px; cursor: pointer; }
-        
-        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
-        
-        textarea { width: 100%; background: #2b2b2b; color: white; border-radius: 10px; padding: 12px; border: 1px solid #333; font-size: 16px; box-sizing: border-box; resize: none; margin-bottom: 10px; font-family: inherit; }
+        select, input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #333; background: #2a2a2a; color: white; font-size: 16px; font-weight: bold; outline: none; transition: 0.3s; }
+        select:focus, input:focus { border-color: #ccff00; }
+        .btn { width: 100%; padding: 15px; margin-bottom: 12px; border: none; border-radius: 12px; font-weight: 900; font-size: 14px; text-transform: uppercase; cursor: pointer; transition: 0.3s; color: black; letter-spacing: 0.5px; }
+        .btn-aviso { background: #ccff00; box-shadow: 0 4px 15px rgba(204, 255, 0, 0.3); }
+        .btn-aviso:hover { background: #e6ff80; transform: translateY(-2px); }
+        .btn-staff { background: #333; color: white; border: 1px solid #444; }
+        .btn-staff:hover { background: #444; }
+        .btn-danger { background: #ff4d4d; color: white; margin-top: 10px; }
+        .btn-danger:hover { background: #ff3333; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Control de Pistas</h2>
-    
-    <label>SELECCIONAR CANCHA</label>
-    <select id="numCancha">
-        <option value="1">CANCHA 1</option><option value="2">CANCHA 2</option>
-        <option value="3">CANCHA 3</option><option value="4">CANCHA 4</option>
-        <option value="5">CANCHA 5</option><option value="6">CANCHA 6</option>
-        <option value="7">CANCHA 7</option><option value="8">CANCHA 8</option>
-    </select>
-    
-    <label>PAREJA A</label>
-    <div class="input-group">
-        <input type="text" id="p1" placeholder="Pareja 1">
-        <button class="btn-clear" onclick="limpiarCampo('p1')">✕</button>
-    </div>
+    <div class="card">
+        <h2>GESTIÓN DE PISTAS</h2>
 
-    <label>PAREJA B</label>
-    <div class="input-group">
-        <input type="text" id="p2" placeholder="Pareja 2">
-        <button class="btn-clear" onclick="limpiarCampo('p2')">✕</button>
-    </div>
-    
-    <button class="btn-lanzar" onclick="prepararAviso()">Anunciar y Ubicar</button>
-    <button id="btnToggle" class="btn-toggle-aviso aviso-off" onclick="toggleAviso()">Mostrar Aviso Gigante</button>
-    <button class="btn-confirmar" onclick="confirmarLargada()">✅ JUGADORES EN PISTA (OK)</button>
+        <label>CANCHA</label>
+        <select id="numCancha">
+            <option value="1">CANCHA 1</option>
+            <option value="2">CANCHA 2</option>
+            <option value="3">CANCHA 3</option>
+            <option value="4">CANCHA 4</option>
+        </select>
 
-    <hr>
-    <label>AVISO LIBRE (TEXTO PERSONALIZADO)</label>
-    <div class="input-group" style="display: block;">
-        <textarea id="textoLibre" rows="2" placeholder="Ej: SORTEO EN 5 MINUTOS..."></textarea>
-        <button class="btn-clear" style="top: 10px;" onclick="limpiarCampo('textoLibre')">✕</button>
-    </div>
-    <button class="btn-lanzar" style="background:#ffcc00; height: 50px; font-size: 15px;" onclick="lanzarAvisoLibre()">Lanzar Aviso Especial</button>
-
-    <hr>
-    <div class="grid-botones">
-        <button class="btn-turno" onclick="prepararTurno()">MARCAR TURNO</button>
-        <button class="btn-vaciar" onclick="vaciarCancha()">VACIAR PISTA</button>
-    </div>
-</div>
-
-<script>
-    let estadoAvisoActual = false;
-
-    // Función para limpiar campos
-    function limpiarCampo(id) {
-        document.getElementById(id).value = "";
-        document.getElementById(id).focus();
-    }
-
-    db.ref("torneo/aviso_actual/activo").on("value", (snap) => {
-        estadoAvisoActual = snap.val();
-        const btn = document.getElementById("btnToggle");
-        if (estadoAvisoActual) {
-            btn.innerText = "Ocultar Aviso Gigante";
-            btn.className = "btn-toggle-aviso aviso-on";
-        } else {
-            btn.innerText = "Mostrar Aviso Gigante";
-            btn.className = "btn-toggle-aviso aviso-off";
-        }
-    });
-
-    async function verificarOcupada(c) {
-        const snap = await db.ref(`torneo/canchas/c${c}`).once('value');
-        return snap.exists();
-    }
-
-    async function prepararAviso() {
-        const c = document.getElementById('numCancha').value;
-        const p1 = document.getElementById('p1').value;
-        const p2 = document.getElementById('p2').value;
-        if(!p1 || !p2) return alert("Ingresa nombres de ambas parejas");
-        if(await verificarOcupada(c)) {
-            if(!confirm(`La CANCHA ${c} ya está ocupada. ¿Deseas borrar lo anterior?`)) return;
-        }
-        const info = { partido: `${p1.toUpperCase()} vs ${p2.toUpperCase()}`, cancha: c, activo: true, confirmado: false };
-        db.ref(`torneo/canchas/c${c}`).set(info);
-        db.ref("torneo/aviso_actual").set(info);
+        <button class="btn btn-aviso" onclick="lanzarAvisoCancha()">📢 LANZAR AVISO CANCHA</button>
+        <button class="btn btn-staff" onclick="prepararTurno()">🎾 MARCAR COMO TURNO</button>
+        <button class="btn btn-staff" onclick="confirmarLargada()">✅ CONFIRMAR LARGADA</button>
         
-        // Limpiar campos automáticamente después de lanzar
-        document.getElementById('p1').value = "";
-        document.getElementById('p2').value = "";
-    }
+        <hr style="border: 0; border-top: 1px solid #333; margin: 25px 0;">
 
-    async function toggleAviso() {
-        if (estadoAvisoActual) {
-            db.ref("torneo/aviso_actual/activo").set(false);
-        } else {
+        <label>MENSAJE PERSONALIZADO</label>
+        <input type="text" id="textoLibre" placeholder="Ej: PREMIACIÓN FINALIZADA">
+        <button class="btn btn-aviso" onclick="lanzarAvisoLibre()">📢 LANZAR AVISO ESPECIAL</button>
+
+        <button class="btn btn-danger" onclick="vaciarCancha()">⚠️ VACIAR DATOS CANCHA</button>
+    </div>
+
+    <script>
+        const db = firebase.database();
+
+        async function lanzarAvisoCancha() {
             const c = document.getElementById('numCancha').value;
-            const snap = await db.ref(`torneo/canchas/c${c}`).once('value');
-            if (snap.exists()) {
-                const datosCancha = snap.val();
+            const snapshot = await db.ref(`torneo/canchas/c${c}`).once('value');
+            const datosCancha = snapshot.val();
+
+            if (datosCancha && datosCancha.partido) {
                 db.ref("torneo/aviso_actual").set({
                     partido: datosCancha.partido,
                     cancha: datosCancha.cancha,
@@ -148,38 +68,41 @@
                 });
             } else { alert(`La CANCHA ${c} está vacía.`); }
         }
-    }
 
-    function lanzarAvisoLibre() {
-        const texto = document.getElementById('textoLibre').value;
-        if(!texto) return alert("Escribe un mensaje primero");
-        db.ref("torneo/aviso_actual").set({
-            partido: texto.toUpperCase(),
-            cancha: "AVISO",
-            activo: true,
-            tipo: "especial"
-        });
-    }
+        function lanzarAvisoLibre() {
+            const texto = document.getElementById('textoLibre').value;
+            if(!texto) return alert("Escribe un mensaje primero");
+            db.ref("torneo/aviso_actual").set({
+                partido: texto.toUpperCase(),
+                cancha: "AVISO",
+                activo: true,
+                tipo: "especial"
+            });
+        }
 
-    async function prepararTurno() {
-        const c = document.getElementById('numCancha').value;
-        db.ref(`torneo/canchas/c${c}`).set({ partido: "TURNO", cancha: c, confirmado: true });
-        db.ref("torneo/aviso_actual/activo").set(false);
-    }
+        async function prepararTurno() {
+            const c = document.getElementById('numCancha').value;
+            // Confirmación añadida según pedido
+            if (confirm(`¿Estás seguro de marcar la CANCHA ${c} como TURNO?`)) {
+                db.ref(`torneo/canchas/c${c}`).set({ partido: "TURNO", cancha: c, confirmado: true });
+                db.ref("torneo/aviso_actual/activo").set(false);
+            }
+        }
 
-    function confirmarLargada() {
-        const c = document.getElementById('numCancha').value;
-        db.ref(`torneo/canchas/c${c}/confirmado`).set(true);
-        db.ref("torneo/aviso_actual/activo").set(false);
-    }
-
-    async function vaciarCancha() {
-        const c = document.getElementById('numCancha').value;
-        if(confirm(`🚨 ¿Vaciar la CANCHA ${c}?`)) {
-            db.ref(`torneo/canchas/c${c}`).remove();
+        function confirmarLargada() {
+            const c = document.getElementById('numCancha').value;
+            db.ref(`torneo/canchas/c${c}/confirmado`).set(true);
             db.ref("torneo/aviso_actual/activo").set(false);
         }
-    }
-</script>
+
+        async function vaciarCancha() {
+            const c = document.getElementById('numCancha').value;
+            if(confirm(`¿Deseas vaciar los datos de la CANCHA ${c}?`)) {
+                db.ref(`torneo/canchas/c${c}`).remove();
+                alert(`Cancha ${c} vaciada.`);
+            }
+        }
+    </script>
+
 </body>
 </html>
