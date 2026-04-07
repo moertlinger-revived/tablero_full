@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JUEZ PADEL CONTROL - V49.2 stable</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="config.js"></script>
+
+    <style>
+        * { box-sizing: border-box; touch-action: manipulation; }
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); 
+            color: #fff; 
+            margin: 0; 
+            padding: 5px; 
+            text-align: center; 
+            padding-top: 40px; 
+        }
+        
+        .version-tag { 
+            position: fixed; 
+            top: 5px; 
+            left: 5px; 
+            font-size: 9px; 
+            color: #666;
+            font-weight: bold; 
+        }
+
+        .brand-logo { 
+            position: fixed; 
+            top: 5px; 
+            right: 15px; 
+            height: 30px; 
+            width: auto; 
+            z-index: 9999;
+        }
+
+        .main-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            max-width: 600px; 
+            margin: auto; 
+        }
+
+        .team-card { 
+            background: #111; 
+            padding: 15px; 
+            border-radius: 20px; 
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .player-name { 
+            background: #222; 
+            padding: 12px; 
+            border-radius: 12px; 
+            font-weight: 800; 
+            font-size: 14px; 
+            color: #ccc;
+            border: 1px solid #444;
+            text-transform: uppercase;
+        }
+
+        .points-display { 
+            font-size: 85px; 
+            font-weight: 900; 
+            color: #ccff00; 
+            margin: 10px 0;
+            text-shadow: 0 0 20px rgba(204, 255, 0, 0.3);
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        .btn-point { 
+            background: #ccff00; 
+            color: #000; 
+            border: none; 
+            padding: 25px; 
+            border-radius: 15px; 
+            font-weight: 900; 
+            font-size: 20px;
+            box-shadow: 0 5px 0 #8bad00;
+        }
+        .btn-point:active { transform: translateY(3px); box-shadow: none; }
+
+        .btn-minus { background: #444; color: #fff; padding: 12px; border-radius: 10px; border: none; font-weight: bold; }
+
+        .config-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 8px; 
+            max-width: 600px; 
+            margin: 15px auto; 
+        }
+
+        .btn-opt { 
+            background: #222; 
+            border: 1px solid #444; 
+            color: #aaa; 
+            padding: 12px 5px; 
+            border-radius: 10px; 
+            font-size: 11px; 
+            font-weight: bold;
+        }
+        .btn-opt.activo { background: #ccff00; color: #000; border-color: #ccff00; }
+
+        .footer-controls { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 10px; 
+            max-width: 600px; 
+            margin: 15px auto; 
+        }
+
+        .btn-footer { 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: none; 
+            font-weight: 900; 
+            font-size: 12px; 
+            text-transform: uppercase;
+        }
+
+        .btn-saque { background: #333; color: white; border: 2px solid #444; }
+        .btn-saque.sirviendo { background: #ccff00; color: black; border-color: #fff; box-shadow: 0 0 15px rgba(204,255,0,0.5); }
+
+        .panel-tiempos { 
+            background: #0a0a0a; 
+            padding: 15px; 
+            border-radius: 20px; 
+            margin-top: 15px; 
+            border: 1px solid #222;
+        }
+
+        .btn-time { 
+            background: #333; color: white; padding: 12px; border-radius: 10px; border: none; 
+            font-weight: bold; font-size: 12px; margin: 5px; width: 45%;
+        }
+        .btn-time.activo { background: #ff4444; }
+
+        .modal-nombres {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 10000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content { background: #222; padding: 25px; border-radius: 25px; width: 90%; max-width: 400px; }
+        .modal-content input { 
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; 
+            background: #333; color: white; font-size: 18px; text-align: center;
+        }
+        .btn-save { background: #ccff00; color: black; width: 100%; padding: 15px; border-radius: 15px; font-weight: bold; margin-top: 20px; border: none; }
+    </style>
+</head>
+<body>
+
+    <div class="version-tag">REVIVED PRO V49.2</div>
+    <img src="logo.png" class="brand-logo" alt="logo">
+
+    <div class="main-grid">
+        <div class="team-card">
+            <div id="n0" class="player-name" onclick="abrirNombres()">JUGADOR 1</div>
+            <div id="n1" class="player-name" onclick="abrirNombres()">JUGADOR 2</div>
+            <div id="pA" class="points-display">0</div>
+            <button class="btn-point" onclick="sumar(0)">PUNTO</button>
+            <button class="btn-minus" onclick="restar(0)">CORREGIR -</button>
+        </div>
+
+        <div class="team-card">
+            <div id="n2" class="player-name" onclick="abrirNombres()">JUGADOR 3</div>
+            <div id="n3" class="player-name" onclick="abrirNombres()">JUGADOR 4</div>
+            <div id="pB" class="points-display">0</div>
+            <button class="btn-point" onclick="sumar(1)">PUNTO</button>
+            <button class="btn-minus" onclick="restar(1)">CORREGIR -</button>
+        </div>
+    </div>
+
+    <div class="config-grid">
+        <button id="btn-regla" class="btn-opt" onclick="toggleRegla()">TB: 7-7</button>
+        <button id="btn-stb" class="btn-opt" onclick="toggleSTB()">3er SET: NORMAL</button>
+        <button id="btn-oro" class="btn-opt" onclick="toggleOro()">ORO: SÍ</button>
+    </div>
+
+    <div class="footer-controls">
+        <button id="f-j0" class="btn-saque" onclick="setSaque(0)">SQ 1</button>
+        <button class="btn-footer" style="background:#ff4444; color:white;" onclick="resetTotal()">RESET</button>
+        <button id="f-j2" class="btn-saque" onclick="setSaque(2)">SQ 3</button>
+        <button id="f-j1" class="btn-saque" onclick="setSaque(1)">SQ 2</button>
+        <button class="btn-footer" style="background:#444; color:white;" onclick="deshacer()">UNDO</button>
+        <button id="f-j3" class="btn-saque" onclick="setSaque(3)">SQ 4</button>
+    </div>
+
+    <div class="panel-tiempos">
+        <div style="font-size: 10px; color: #555; margin-bottom: 10px; font-weight: bold;">CONTROLES DE TIEMPO</div>
+        <button id="btn-run-peloteo" class="btn-time" onclick="toggleRunPeloteo()">START PELOTEO</button>
+        <button id="btn-vis-peloteo" class="btn-time" onclick="toggleVisPeloteo()">VER RELOJ</button>
+        <button id="btn-run-partido" class="btn-time" onclick="toggleRunPartido()">START PARTIDO</button>
+        <button id="btn-descanso" class="btn-time" onclick="toggleDescanso()">CAMBIO LADO</button>
+        
+        <button id="btn-presentacion" style="background:#6200ea; color:white; padding:15px; border-radius:10px; border:none; font-weight:900; width:95%; margin-top:10px; text-transform:uppercase;" onclick="togglePresentacion()">📢 PRESENTAR JUGADORES</button>
+    </div>
+
+    <div id="modalNombres" class="modal-nombres">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:#ccff00">NOMBRES</h3>
+            <input type="text" id="in0" placeholder="Jugador 1">
+            <input type="text" id="in1" placeholder="Jugador 2">
+            <hr style="border:0; border-top:1px solid #444; margin:15px 0">
+            <input type="text" id="in2" placeholder="Jugador 3">
+            <input type="text" id="in3" placeholder="Jugador 4">
+            <button class="btn-save" onclick="guardarNombres()">CONFIRMAR CAMBIOS</button>
+        </div>
+    </div>
+
+    <script>
+    const db = firebase.database();
+    let pts = [0,0], historialSets = [[0,0,0],[0,0,0]], modo = "NORMAL", limiteTB = 7;
+    let saqueJugadorIdx = 0, puntoOroActivo = true, modoSTB = 0;
+    let tPar=0, tPel=300, tDesc=90, runP=false, runPel=false, runDesc=false, visPel=false;
+    let timerGlobal;
+
+    function toggleRunPeloteo() { runPel = !runPel; render(); }
+    function toggleVisPeloteo() { visPel = !visPel; render(); }
+    function toggleRunPartido() { runP = !runP; if(runP) { visPel=false; runPel=false; } render(); }
+    function toggleDescanso() { runDesc = !runDesc; if(!runDesc) tDesc=90; render(); }
+
+    function togglePresentacion() {
+        visPel = !visPel;
+        if(visPel) runP = false;
+        render();
+    }
+
+    function tick() {
+        if(runP) tPar++;
+        if(runPel && tPel > 0) tPel--;
+        if(runDesc && tDesc > 0) tDesc--;
+        
+        const f = (s) => {
+            let h = Math.floor(s/3600);
+            let m = Math.floor((s%3600)/60);
+            let sec = s%60;
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+        }
+        const fM = (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+        
+        db.ref("marcador/tiempos").set({
+            tPar: f(tPar), tPel: fM(tPel), tDesc: tDesc,
+            runP: runP, runPel: runPel, vPel: visPel, vDesc: runDesc,
+            tiebreak: modo === "TB", esSTB: (modo === "TB" && (historialSets[0][2]>0 || historialSets[1][2]>0))
+        });
+    }
+    setInterval(tick, 1000);
+
+    function sumar(t) {
+        if(modo === "NORMAL") {
+            if(pts[t] < 3) pts[t]++;
+            else if(pts[t] === 3) {
+                if(puntoOroActivo || pts[1-t] < 3) winGame(t);
+                else if(pts[1-t] === 3) pts[t] = 4;
+                else if(pts[1-t] === 4) pts[1-t] = 3;
+            } else winGame(t);
+        } else {
+            pts[t]++;
+            let limite = (modoSTB > 0 && (historialSets[0][0]+historialSets[0][1]+historialSets[1][0]+historialSets[1][1] >= 4)) ? (modoSTB===1?10:11) : limiteTB;
+            if(pts[t] >= limite && (pts[t] - pts[1-t] >= 2)) winGame(t);
+            if((pts[0]+pts[1]) % 2 !== 0) saqueJugadorIdx = (saqueJugadorIdx + 1) % 4;
+        }
+        render();
+    }
+
+    function restar(t) { if(pts[t] > 0) pts[t]--; render(); }
+
+    function winGame(t) {
+        pts = [0,0];
+        let sIdx = historialSets[0][2] + historialSets[1][2] > 0 ? 2 : (historialSets[0][1] + historialSets[1][1] > 0 ? 1 : 0);
+        historialSets[t][sIdx]++;
+        let gamesT = historialSets[t][sIdx];
+        let gamesO = historialSets[1-t][sIdx];
+        if(modo === "TB") { modo = "NORMAL"; winSet(t, sIdx); }
+        else {
+            if(gamesT >= 6 && gamesO <= 4) winSet(t, sIdx);
+            else if(gamesT === 7 && gamesO === 5) winSet(t, sIdx);
+            else if(gamesT === 6 && gamesO === 6) modo = "TB";
+        }
+        saqueJugadorIdx = (saqueJugadorIdx + 1) % 4;
+    }
+
+    function winSet(t, idx) {
+        if(idx < 2) {
+            let setsT = (historialSets[t][0] > historialSets[1-t][0] ? 1 : 0) + (historialSets[t][1] > historialSets[1-t][1] ? 1 : 0);
+            if(setsT === 2) alert("PARTIDO FINALIZADO");
+        } else alert("PARTIDO FINALIZADO");
+    }
+
+    function setSaque(i) { saqueJugadorIdx = i; render(); }
+    function toggleRegla() { limiteTB = limiteTB === 7 ? 5 : 7; render(); }
+    function toggleOro() { puntoOroActivo = !puntoOroActivo; render(); }
+    function toggleSTB() { modoSTB = (modoSTB + 1) % 3; render(); }
+
+    function render() {
+        const l = ["0","15","30","40","Ad"];
+        const pA_clean = modo==="NORMAL" ? l[pts[0]] : pts[0];
+        const pB_clean = modo==="NORMAL" ? l[pts[1]] : pts[1];
+        document.getElementById('pA').innerText = pA_clean;
+        document.getElementById('pB').innerText = pB_clean;
+        document.getElementById('btn-regla').innerText = `TB: ${limiteTB}-${limiteTB}`;
+        document.getElementById('btn-regla').classList.toggle('activo', limiteTB === 5);
+        document.getElementById('btn-stb').innerText = "3er SET: " + (modoSTB===0?"NORMAL":modoSTB===1?"STB(10)":"STB(11)");
+        document.getElementById('btn-stb').classList.toggle('activo', modoSTB>0);
+        document.getElementById('btn-oro').innerText = "ORO: " + (puntoOroActivo?"SÍ":"NO");
+        document.getElementById('btn-oro').classList.toggle('activo', puntoOroActivo);
+        document.getElementById('btn-run-peloteo').classList.toggle('activo', runPel);
+        document.getElementById('btn-run-peloteo').innerText = runPel ? "PAUSE PELOTEO" : "START PELOTEO";
+        document.getElementById('btn-run-partido').classList.toggle('activo', runP);
+        document.getElementById('btn-descanso').classList.toggle('activo', runDesc);
+        for(let i=0; i<4; i++) document.getElementById(`f-j${i}`).classList.toggle('sirviendo', saqueJugadorIdx===i); 
+        db.ref("marcador/actual").set({ 
+            n0: document.getElementById('n0').innerText, n1: document.getElementById('n1').innerText, 
+            n2: document.getElementById('n2').innerText, n3: document.getElementById('n3').innerText, 
+            h0: historialSets[0], h1: historialSets[1], p0: pA_clean, p1: pB_clean,
+            sIdx: saqueJugadorIdx, oro: (pts[0]===3 && pts[1]===3 && puntoOroActivo && modo==="NORMAL"),
+            msg: runDesc ? "CAMBIO DE LADO" : ""
+        });
+    }
+
+    function abrirNombres() {
+        document.getElementById('in0').value = document.getElementById('n0').innerText;
+        document.getElementById('in1').value = document.getElementById('n1').innerText;
+        document.getElementById('in2').value = document.getElementById('n2').innerText;
+        document.getElementById('in3').value = document.getElementById('n3').innerText;
+        document.getElementById('modalNombres').style.display = "flex";
+    }
+
+    function guardarNombres() {
+        document.getElementById('n0').innerText = document.getElementById('in0').value.toUpperCase();
+        document.getElementById('n1').innerText = document.getElementById('in1').value.toUpperCase();
+        document.getElementById('n2').innerText = document.getElementById('in2').value.toUpperCase();
+        document.getElementById('n3').innerText = document.getElementById('in3').value.toUpperCase();
+        document.getElementById('modalNombres').style.display = "none";
+        render();
+    }
+
+    function resetTotal() {
+        if(confirm("¿RESETEAR TODO EL PARTIDO?")) {
+            pts=[0,0]; historialSets=[[0,0,0],[0,0,0]]; modo="NORMAL"; tPar=0; tPel=300; runP=false; runPel=false;
+            render();
+        }
+    }
+    window.onload = () => { render(); }
+    </script>
+</body>
+</html>
