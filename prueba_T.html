@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>revived LIVE SCORE PRO - v11.6</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="config.js"></script>    
+
+    <style>
+        /* CONFIGURACIÓN ESTRUCTURAL ORIGINAL */
+        body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        .brand-header { 
+            width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 40px; box-sizing: border-box; border-bottom: 2px solid #333; background: #0a0a0a; 
+        }
+        .title-main { font-size: 20px; font-weight: 900; color: #ccff00; text-transform: uppercase; letter-spacing: 2px; }
+        .logo-top { height: 40px; object-fit: contain; }
+
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 20px 40px; gap: 20px; justify-content: center; }
+
+        /* ESTILOS AGREGADOS: PUBLICIDAD Y PLAYER CARDS */
+        #contenedor-publicidad {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: black; z-index: 10000;
+        }
+        
+        #capa-presentacion {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9995; animation: fadeIn 0.5s;
+        }
+
+        .titulo-presentacion { color: #ccff00; font-size: 50px; font-weight: 900; text-transform: uppercase; margin-bottom: 50px; letter-spacing: 5px; }
+        .contenedor-cards { display: flex; align-items: center; gap: 60px; }
+        .player-card {
+            background: #111; border: 5px solid #ccff00; border-radius: 30px;
+            padding: 40px; width: 500px; text-align: center;
+            box-shadow: 0 0 50px rgba(204, 255, 0, 0.3);
+        }
+        .nombre-pareja-card { color: #fff; font-size: 45px; font-weight: 900; line-height: 1.2; text-transform: uppercase; }
+        .vs-circulo {
+            background: #ccff00; color: #000; width: 80px; height: 80px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 35px;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ESTILOS ORIGINALES DEL MARCADOR */
+        .scoreboard-container { display: grid; grid-template-columns: 1fr 450px; gap: 30px; align-items: stretch; }
+        .teams-section { display: flex; flex-direction: column; gap: 20px; }
+        .team-row { 
+            background: #151515; border-radius: 20px; height: 180px; display: flex; align-items: center; 
+            padding: 0 40px; position: relative; border-left: 10px solid transparent; transition: 0.3s;
+        }
+        .team-row.active-serve { border-left-color: #ccff00; background: #1a1a00; }
+        .team-names { flex-grow: 1; }
+        .player-name { display: block; font-size: 38px; font-weight: 800; text-transform: uppercase; color: #eee; }
+        .points-section { width: 220px; text-align: center; display: flex; align-items: center; justify-content: center; }
+        .points-val { font-size: 130px; font-weight: 900; color: #ccff00; font-variant-numeric: tabular-nums; }
+        .sets-history { display: flex; gap: 15px; margin-left: 30px; }
+        .set-box { 
+            width: 80px; height: 110px; background: #222; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; font-size: 60px; font-weight: 800; color: #888;
+        }
+        .set-box.current-set { background: #333; color: #fff; border: 2px solid #555; }
+        .modo-tb { color: #ffcc00 !important; }
+        .tv-footer { 
+            height: 100px; background: #0a0a0a; border-top: 2px solid #333; 
+            display: flex; align-items: center; justify-content: space-around; padding: 0 40px;
+        }
+        .info-pill { background: #1a1a1a; padding: 10px 30px; border-radius: 50px; border: 1px solid #333; display: flex; align-items: center; gap: 15px; }
+        .pill-label { color: #666; font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        .pill-value { color: #fff; font-size: 24px; font-weight: 800; font-family: monospace; }
+        .aviso-oro { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #ccff00; color: #000; padding: 20px 60px; font-size: 50px; font-weight: 900;
+            border-radius: 15px; z-index: 100; display: none; box-shadow: 0 0 50px rgba(204,255,0,0.5);
+        }
+        #aviso-tb-gigante {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #ffcc00; color: #000; padding: 5px 20px; border-radius: 10px;
+            font-weight: 900; font-size: 18px; z-index: 1000; display: none;
+        }
+        .overlay-descanso {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 5000; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .msg-descanso { font-size: 80px; font-weight: 900; color: #ccff00; margin-bottom: 20px; }
+        .reloj-descanso { font-size: 150px; font-weight: 900; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div id="contenedor-publicidad">
+        <video id="video-publicidad" width="100%" height="100%" muted>
+            <source src="http://TU_SERVIDOR/publicidad/sponsors.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div id="capa-presentacion">
+        <div class="titulo-presentacion">PRÓXIMO PARTIDO</div>
+        <div class="contenedor-cards">
+            <div class="player-card">
+                <div class="nombre-pareja-card" id="card-p1">PAREJA A</div>
+                <div style="color:#ccff00; font-weight:bold; margin-top:10px;">EQUIPO 1</div>
+            </div>
+            <div class="vs-circulo">VS</div>
+            <div class="player-card">
+                <div class="nombre-pareja-card" id="card-p2">PAREJA B</div>
+                <div style="color:#ccff00; font-weight:bold; margin-top:10px;">EQUIPO 2</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="aviso-tb-gigante">TIE-BREAK</div>
+    <div id="aviso-oro" class="aviso-oro">PUNTO DE ORO</div>
+
+    <div id="pantalla-descanso" class="overlay-descanso">
+        <div id="msg-tv-desc" class="msg-descanso">CAMBIO DE LADO</div>
+        <div id="reloj-tv-desc" class="reloj-descanso">90</div>
+    </div>
+
+    <div class="brand-header">
+        <div class="title-main">REVIVED • LIVE SCORE</div>
+        <img src="logo.png" class="logo-top" alt="">
+    </div>
+
+    <div class="main-content">
+        <div class="scoreboard-container">
+            <div class="teams-section">
+                <div class="team-row" id="row0">
+                    <div class="team-names">
+                        <span class="player-name" id="n0">-</span>
+                        <span class="player-name" id="n1">-</span>
+                    </div>
+                    <div class="sets-history">
+                        <div class="set-box" id="s1-0">0</div>
+                        <div class="set-box" id="s2-0">0</div>
+                        <div class="set-box" id="s3-0">0</div>
+                    </div>
+                    <div class="points-section">
+                        <span class="points-val" id="pA">0</span>
+                    </div>
+                </div>
+
+                <div class="team-row" id="row1">
+                    <div class="team-names">
+                        <span class="player-name" id="n2">-</span>
+                        <span class="player-name" id="n3">-</span>
+                    </div>
+                    <div class="sets-history">
+                        <div class="set-box" id="s1-1">0</div>
+                        <div class="set-box" id="s2-1">0</div>
+                        <div class="set-box" id="s3-1">0</div>
+                    </div>
+                    <div class="points-section">
+                        <span class="points-val" id="pB">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tv-footer">
+        <div class="info-pill">
+            <span class="pill-label">PELOTEO</span>
+            <span id="tv-peloteo" class="pill-value">05:00</span>
+        </div>
+        <div class="info-pill">
+            <span class="pill-label">TIEMPO DE PARTIDO</span>
+            <span id="tv-partido" class="pill-value">00:00:00</span>
+        </div>
+    </div>
+
+<script>
+    const db = firebase.database();
+    let tiebreakActivo = false;
+    let partidoFinalizadoGlobal = false;
+
+    db.ref("marcador/tiempos").on("value", (snapshot) => {
+        const d = snapshot.val();
+        if(!d) return;
+        
+        document.getElementById('tv-partido').innerText = d.tPar;
+        document.getElementById('tv-peloteo').innerText = d.tPel;
+        document.getElementById('reloj-tv-desc').innerText = d.tDesc;
+        
+        const capaDescanso = document.getElementById('pantalla-descanso');
+        const avisoTb = document.getElementById('aviso-tb-gigante');
+        
+        // --- LÓGICA DE PUBLICIDAD ---
+        const vPubli = document.getElementById('video-publicidad');
+        const capaPubli = document.getElementById('contenedor-publicidad');
+        
+        if (d.vDesc === true) {
+            capaDescanso.style.display = 'flex';
+            capaPubli.style.display = 'block';
+            vPubli.play().catch(e => console.log("Play bloqueado"));
+        } else {
+            capaDescanso.style.display = 'none';
+            capaPubli.style.display = 'none';
+            vPubli.pause();
+            vPubli.currentTime = 0;
+        }
+
+        // --- LÓGICA DE PLAYER CARDS (PRESENTACIÓN) ---
+        const capaCards = document.getElementById('capa-presentacion');
+        // Se activa si el reloj de peloteo está visible (vPel) y el partido no ha arrancado (runP)
+        if (d.vPel === true && d.runP === false) {
+            capaCards.style.display = 'flex';
+            // Actualizar nombres en las tarjetas
+            db.ref("marcador/actual").once("value", (snap) => {
+                const n = snap.val();
+                if(n) {
+                    document.getElementById('card-p1').innerText = n.n0 + " / " + n.n1;
+                    document.getElementById('card-p2').innerText = n.n2 + " / " + n.n3;
+                }
+            });
+        } else {
+            capaCards.style.display = 'none';
+        }
+
+        tiebreakActivo = d.tiebreak || false;
+        partidoFinalizadoGlobal = d.modoFinal || false;
+
+        if (partidoFinalizadoGlobal) {
+            avisoTb.style.display = 'none';
+        } else {
+            if (d.esSTB) {
+                avisoTb.innerText = "SUPER TIE-BREAK";
+                avisoTb.style.display = 'block';
+            } else {
+                avisoTb.innerText = "TIE-BREAK";
+                if (tiebreakActivo) {
+                    avisoTb.style.display = 'block';
+                } else {
+                    avisoTb.style.display = 'none';
+                }
+            }
+        }
+
+        document.getElementById('pA').classList.toggle('modo-tb', tiebreakActivo);
+        document.getElementById('pB').classList.toggle('modo-tb', tiebreakActivo);
+    });
+
+    db.ref("marcador/actual").on("value", (snapshot) => {
+        updateActual(snapshot.val());
+    });
+
+    function updateActual(d) {
+        if(!d) return;
+        document.getElementById('n0').innerText=d.n0; document.getElementById('n1').innerText=d.n1;
+        document.getElementById('n2').innerText=d.n2; document.getElementById('n3').innerText=d.n3;
+        document.getElementById('pA').innerText=d.p0; document.getElementById('pB').innerText=d.p1;
+        document.getElementById('msg-tv-desc').innerText = d.msg;
+        
+        const avisoOro = document.getElementById('aviso-oro');
+        if(d.oro && !tiebreakActivo && !partidoFinalizadoGlobal) {
+            avisoOro.style.display = 'flex';
+        } else {
+            avisoOro.style.display = 'none';
+        }
+
+        [0,1,2].forEach(i => { 
+            document.getElementById(`s${i+1}-0`).innerText = d.h0[i]; 
+            document.getElementById(`s${i+1}-1`).innerText = d.h1[i]; 
+        });
+
+        for(let i=0; i<4; i++) {
+            const row = i < 2 ? 0 : 1;
+            document.getElementById(`row${row}`).classList.toggle('active-serve', d.sIdx === i);
+        }
+
+        const boxes = document.querySelectorAll('.set-box');
+        boxes.forEach(b => b.classList.remove('current-set'));
+        const currSet = d.h0.filter(x => x > 0).length + d.h1.filter(x => x > 0).length;
+        const setIdx = Math.max(1, Math.min(3, Math.floor(currSet / 2) + 1));
+        document.getElementById(`s${setIdx}-0`).classList.add('current-set');
+        document.getElementById(`s${setIdx}-1`).classList.add('current-set');
+    }
+</script>
+
+</body>
+</html>
