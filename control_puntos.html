@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JUEZ PADEL CONTROL - V50.0 stable</title>
+    <title>JUEZ PADEL CONTROL - V50.1 stable</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="config.js"></script>
@@ -151,7 +151,7 @@
             100% { opacity: 1; }
         }
 
-        .nombre-j { font-size: 15px; font-weight: 800; flex-grow: 1; text-align: left; color: #ddd; letter-spacing: 0.5px; }
+        .nombre-j { font-size: 15px; font-weight: 800; flex-grow: 1; text-align: left; color: #ddd; letter-spacing: 0.5px; cursor: pointer; }
         
         .puntos-display { 
             font-family: 'Impact', sans-serif;
@@ -205,7 +205,7 @@
     </style>
 </head>
 <body onload="cargarLocal()">
-    <div class="version-tag">CONTROL TABLERO REVIVED (VER. 50.0 stable)</div>
+    <div class="version-tag">CONTROL TABLERO REVIVED (VER. 50.1 stable)</div>
 
     <img src="https://lh3.googleusercontent.com/u/0/d/1Sbun1g6OMSdNtM-6arDu5XUxH-NbLwwP" class="brand-logo">
     
@@ -267,6 +267,21 @@
             </div>
             <div class="puntos-display" id="pB">0</div>
             <button class="btn-punto" onclick="sumar(1)">+ EQUIPO 2</button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL PARA CAMBIO DE NOMBRES
+         ============================================================ -->
+    <div id="modal-nombre" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:20000; align-items:center; justify-content:center;">
+        <div style="background:#1a1a1a; border:2px solid #ccff00; border-radius:20px; padding:25px; width:85%; max-width:400px; text-align:center;">
+            <div style="font-size:14px; color:#888; font-weight:900; margin-bottom:10px; letter-spacing:1px;">NOMBRE DEL JUGADOR</div>
+            <div id="modal-jugador-label" style="font-size:12px; color:#ccff00; margin-bottom:15px;">J1A</div>
+            <input type="text" id="input-nombre" maxlength="12" autocomplete="off" style="width:100%; padding:15px; font-size:20px; font-weight:900; text-align:center; text-transform:uppercase; background:#000; color:#ccff00; border:2px solid #444; border-radius:10px; outline:none; box-sizing:border-box;">
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button onclick="cerrarModalNombre()" style="flex:1; padding:15px; background:#333; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:900; cursor:pointer;">CANCELAR</button>
+                <button onclick="guardarNombre()" style="flex:1; padding:15px; background:#ccff00; color:#000; border:none; border-radius:10px; font-size:14px; font-weight:900; cursor:pointer;">GUARDAR</button>
+            </div>
         </div>
     </div>
 
@@ -500,20 +515,16 @@
     function definirSaque(idx) { saqueJugadorIdx = idx; render(); }
 
     function rotarSaqueNormal() {
-        // Determina el equipo que sacará a continuación
         let sigEq = (saqueJugadorIdx < 2) ? 1 : 0;
 
-        // Actualiza el próximo sacador DENTRO del equipo que acaba de sacar
         if(saqueJugadorIdx === 0 || saqueJugadorIdx === 1) {
             proximoSacadorEq[0] = (saqueJugadorIdx === 0) ? 1 : 0;
         } else if(saqueJugadorIdx === 2 || saqueJugadorIdx === 3) {
             proximoSacadorEq[1] = (saqueJugadorIdx === 2) ? 3 : 2;
         }
 
-        // Asigna el saque al equipo contrario usando su próximo sacador
         saqueJugadorIdx = (sigEq === 0) ? proximoSacadorEq[0] : proximoSacadorEq[1];
 
-        // Actualiza el próximo sacador DEL NUEVO EQUIPO para la siguiente rotación
         if(saqueJugadorIdx === 0) proximoSacadorEq[0] = 1;
         else if(saqueJugadorIdx === 1) proximoSacadorEq[0] = 0;
         else if(saqueJugadorIdx === 2) proximoSacadorEq[1] = 3;
@@ -566,6 +577,51 @@
     }
 
     /* ============================================================
+       CAMBIO DE NOMBRES (con modal propio, sin prompt)
+       ============================================================ */
+    let jugadorEditandoIdx = -1;
+
+    function cambiarNombre(i) {
+        jugadorEditandoIdx = i;
+        const modal = document.getElementById('modal-nombre');
+        const input = document.getElementById('input-nombre');
+        const label = document.getElementById('modal-jugador-label');
+        
+        const nombreActual = document.getElementById('n'+i).innerText;
+        const esPorDefecto = ['J1A','J1B','J2A','J2B'].includes(nombreActual);
+        input.value = esPorDefecto ? '' : nombreActual;
+        
+        const etiquetas = ['EQUIPO 1 - JUGADOR A', 'EQUIPO 1 - JUGADOR B', 
+                           'EQUIPO 2 - JUGADOR A', 'EQUIPO 2 - JUGADOR B'];
+        label.innerText = etiquetas[i];
+        
+        modal.style.display = 'flex';
+        setTimeout(() => input.focus(), 100);
+    }
+
+    function cerrarModalNombre() {
+        document.getElementById('modal-nombre').style.display = 'none';
+        jugadorEditandoIdx = -1;
+    }
+
+    function guardarNombre() {
+        if(jugadorEditandoIdx < 0) return;
+        const nuevoNombre = document.getElementById('input-nombre').value.trim().toUpperCase();
+        if(nuevoNombre) {
+            document.getElementById('n'+jugadorEditandoIdx).innerText = nuevoNombre;
+        }
+        cerrarModalNombre();
+        render();
+    }
+
+    // Cerrar modal al pulsar Enter en el input
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('input-nombre').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') guardarNombre();
+        });
+    });
+
+    /* ============================================================
        RENDER (envío a Firebase)
        ============================================================ */
     function render() {
@@ -587,7 +643,6 @@
         document.getElementById('btn-oro').innerText = "ORO: " + (puntoOroActivo ? "SÍ" : "NO");
         document.getElementById('btn-oro').classList.toggle('activo', puntoOroActivo);
 
-        // Indicador de pasos disponibles para deshacer
         const btnUndo = document.getElementById('btn-undo');
         btnUndo.innerText = stack.length > 0 ? `↩ CORREGIR (${stack.length})` : '↩ CORREGIR';
 
