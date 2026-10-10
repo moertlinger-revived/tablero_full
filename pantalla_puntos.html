@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>revived LIVE SCORE PRO - v11.6</title>
+    <title>revived LIVE SCORE PRO - v12.0</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="config.js"></script>    
@@ -12,11 +12,11 @@
         body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
         .brand-header { 
-            width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between; 
+            width: 100%; height: 50px; display: flex; align-items: center; justify-content: space-between; 
             padding: 0 40px; box-sizing: border-box; border-bottom: 2px solid #333; background: #0a0a0a; 
         }
-        .title-main { font-size: 20px; font-weight: 900; color: #ccff00; text-transform: uppercase; letter-spacing: 2px; }
-        .logo-top { height: 40px; object-fit: contain; }
+        .title-main { font-size: 18px; font-weight: 900; color: #ccff00; text-transform: uppercase; letter-spacing: 2px; }
+        .logo-top { height: 35px; object-fit: contain; }
 
         .main-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 10px 0; }
 
@@ -55,6 +55,7 @@
         .labels-row { display: flex; background: rgba(255,255,255,0.05); font-size: 18px; color: #888; font-weight: bold; border-bottom: 3px solid #333; }
         .label-equipo { flex-grow: 1; padding: 10px 30px; }
         .label-box { width: 110px; text-align: center; padding: 10px 0; border-left: 2px solid #333; }
+        .label-box.set-actual { background: rgba(204, 255, 0, 0.15); color: #ccff00; }
 
         .equipo-block { display: flex; border-bottom: 10px solid #333; height: 160px; }
         .equipo-block:last-child { border-bottom: none; }
@@ -109,9 +110,9 @@
             
             <div class="labels-row">
                 <div class="label-equipo">JUGADORES</div>
-                <div class="label-box">SET 1</div>
-                <div class="label-box">SET 2</div>
-                <div class="label-box">SET 3</div>
+                <div class="label-box" id="lbl-set-0">SET 1</div>
+                <div class="label-box" id="lbl-set-1">SET 2</div>
+                <div class="label-box" id="lbl-set-2">SET 3</div>
                 <div class="label-box" style="width:220px; color:#c6a052;">PUNTOS</div>
             </div>
             
@@ -133,43 +134,34 @@
         </div>
     </div>
 
-
-    
     <div class="footer-auspiciantes">
-        <!-- <img src="https://lh3.googleusercontent.com/u/0/d/1Q2krrcRKeNX8LeYFBKStBB8-mZAJ7-VP" class="logo-sponsor"> -->
-        <!-- <img src="https://lh3.googleusercontent.com/u/0/d/1CPn9kIDEj5lRpJcu2z1f--cKy3VN0X7Q" class="logo-sponsor"> -->
-        <!-- <img src="https://lh3.googleusercontent.com/u/0/d/1SzAQiKyloNwnmn_BnLQaO6p_eJSNjn8y" class="logo-sponsor"> -->
-        <!-- <img src="https://lh3.googleusercontent.com/u/0/d/1oisKHgPkNW1loGoAal74E8QCfiK2f6qp" class="logo-sponsor"> -->
-        <!-- <img src="https://lh3.googleusercontent.com/u/0/d/1MQ6tkM9c4UOamincvrZ3gREkyscX5C42" class="logo-sponsor"> -->
-        <!-- <img src="https://lh3.googleusercontent.com/u/0/d/1GIRiY5M1SjeCy-X4OQ-KznE7dNg6tDOw" class="logo-sponsor"> -->
-        <!-- <img src="https://lh3.googleusercontent.com/u/0/d/1aqgOJTjyUprGk_-CuwcMoV7JcLq_o39z" class="logo-sponsor"> -->
         <img src="https://lh3.googleusercontent.com/u/0/d/1kvaX8-zepC_IpLlCiBiLsRFmWwtEuYmw" class="logo-sponsor">
         <img src="https://lh3.googleusercontent.com/u/0/d/19HeJsgAOuOmn97XwjqZ36edP9GqT-Bzp" class="logo-sponsor">
         <img src="https://lh3.googleusercontent.com/u/0/d/165RQVP3WqDdY2wV-y628JWValN3ynync" class="logo-sponsor">
         <img src="https://lh3.googleusercontent.com/u/0/d/16n1Dv7EamRNpQN1r50Qp8uSARosnOMad" class="logo-sponsor">
-
-        
     </div>
 
 <script>
-
     let tiebreakActivo = false;
     let partidoFinalizadoGlobal = false;
-    
+    let setActualIdx = 0;
+    let avisoActivo = false;
+
     // Variables locales para cálculo independiente del tiempo
     let localRunP = false;
     let localSTP = 0;
     let localACP = 0;
+    let localTimerTitle = "TIEMPO PARTIDO";
 
-    // Reloj interno del Display: corre siempre comparando el tiempo actual con el de inicio enviado por el juez
+    // Reloj interno del Display
     setInterval(() => {
         if(localRunP && localSTP > 0) {
-            let actualSeg = Math.floor((Date.now() - localSTP) / 1000);
+            let actualSeg = localACP + Math.floor((Date.now() - localSTP) / 1000);
             
             if(document.getElementById('timer-title').innerText === "TIEMPO PARTIDO") {
-                let h=Math.floor(actualSeg/3600).toString().padStart(2,'0'), 
-                    m=Math.floor((actualSeg%3600)/60).toString().padStart(2,'0'), 
-                    s=(actualSeg%60).toString().padStart(2,'0');
+                let h = Math.floor(actualSeg/3600).toString().padStart(2,'0');
+                let m = Math.floor((actualSeg%3600)/60).toString().padStart(2,'0');
+                let s = (actualSeg%60).toString().padStart(2,'0');
                 document.getElementById('val-timer').innerText = `${h}:${m}:${s}`;
             }
         }
@@ -181,15 +173,20 @@
         // Sincronización de flags de tiempo real
         localRunP = t.runP;
         localSTP = t.sTP;
-        localACP = t.acP;
+        localACP = t.acP || 0;
 
         if(t.vPel) {
             document.getElementById('val-timer').innerText = t.tPel;
             document.getElementById('timer-title').innerText = "CALENTAMIENTO";
         } else {
             document.getElementById('timer-title').innerText = "TIEMPO PARTIDO";
-            // Si el cronómetro no está corriendo (pausado), mostramos el valor estático
-            if(!localRunP) document.getElementById('val-timer').innerText = t.tPar;
+            // Si el cronómetro no está corriendo (pausado), mostramos el valor acumulado
+            if(!localRunP) {
+                let h = Math.floor(localACP/3600).toString().padStart(2,'0');
+                let m = Math.floor((localACP%3600)/60).toString().padStart(2,'0');
+                let s = (localACP%60).toString().padStart(2,'0');
+                document.getElementById('val-timer').innerText = `${h}:${m}:${s}`;
+            }
         }
         
         const avisoTopCambio = document.getElementById('aviso-tv-top');
@@ -205,20 +202,26 @@
             avisoFinalTop.style.display = 'none';
             avisoTopCambio.style.display = 'none';
             avisoTb.style.display = 'none';
+            avisoActivo = true;
         } else {
             cartelGigante.style.display = 'none';
             if(partidoFinalizadoGlobal) {
                 avisoFinalTop.style.display = 'flex';
                 avisoTopCambio.style.display = 'none';
                 avisoTb.style.display = 'none';
+                avisoActivo = true;
             } else {
                 avisoFinalTop.style.display = 'none';
+                avisoActivo = false;
+                
                 if(t.vDesc && t.tDesc > 0) { 
                     avisoTopCambio.style.display = 'flex'; 
                     document.getElementById('descanso-tv-q').innerText = t.tDesc; 
+                    avisoActivo = true;
                 } else { 
                     avisoTopCambio.style.display = 'none'; 
                 }
+                
                 if(tiebreakActivo) {
                     avisoTb.style.display = 'flex';
                     avisoTb.innerText = t.esSTB ? "SUPER TIE-BREAK" : "TIE-BREAK";
@@ -234,10 +237,27 @@
 
     function updateActual(d) {
         if(!d) return;
-        document.getElementById('n0').innerText=d.n0; document.getElementById('n1').innerText=d.n1;
-        document.getElementById('n2').innerText=d.n2; document.getElementById('n3').innerText=d.n3;
-        document.getElementById('pA').innerText=d.p0; document.getElementById('pB').innerText=d.p1;
+        document.getElementById('n0').innerText = d.n0;
+        document.getElementById('n1').innerText = d.n1;
+        document.getElementById('n2').innerText = d.n2;
+        document.getElementById('n3').innerText = d.n3;
+        document.getElementById('pA').innerText = d.p0;
+        document.getElementById('pB').innerText = d.p1;
         document.getElementById('msg-tv-desc').innerText = d.msg;
+
+        // Actualizar indicador de set actual
+        if(typeof d.h0 !== 'undefined' && typeof d.h1 !== 'undefined') {
+            let setsCompletados = 0;
+            for(let i = 0; i < 3; i++) {
+                let vA = d.h0[i], vB = d.h1[i];
+                if((vA >= 6 || vB >= 6) && Math.abs(vA - vB) >= 2) setsCompletados++;
+                else if((vA === 7 && vB === 6) || (vB === 7 && vA === 6)) setsCompletados++;
+            }
+            setActualIdx = Math.min(setsCompletados, 2);
+            for(let i = 0; i < 3; i++) {
+                document.getElementById(`lbl-set-${i}`).classList.toggle('set-actual', i === setActualIdx);
+            }
+        }
         
         const avisoOro = document.getElementById('aviso-oro');
         if(d.oro && !tiebreakActivo && !partidoFinalizadoGlobal) {
@@ -250,7 +270,9 @@
             document.getElementById(`s${i+1}-0`).innerText = d.h0[i]; 
             document.getElementById(`s${i+1}-1`).innerText = d.h1[i]; 
         });
-        for(let i=0; i<4; i++) document.getElementById(`b${i}`).style.display = (d.sIdx===i) ? 'block' : 'none';
+        for(let i = 0; i < 4; i++) {
+            document.getElementById(`b${i}`).style.display = (d.sIdx === i) ? 'block' : 'none';
+        }
     }
 
     db.ref("marcador/tiempos").on("value", (snap) => updateTiempos(snap.val()));
